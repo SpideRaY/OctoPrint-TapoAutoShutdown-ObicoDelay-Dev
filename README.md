@@ -23,18 +23,15 @@ Retains the existing printer shutdown and Obico AI features and adds improved co
 
 *Important: The OctoPi shutdown feature is optional. The smart plug timer operates independently of Linux, so allow sufficient time for the Raspberry Pi to shut down cleanly before power is cut.*
 
-**v0.3.1 — Additional optional OctoPi shutdown control + Auto connect Octopi when Tapo senses printer and light are on the same plug**
+**v0.3.1 — Automatic printer connection (in development)**
 
-Retains the existing printer shutdown and Obico AI features and adds improved control of a second Tapo P110 connected to the Raspberry Pi running OctoPrint.
+Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI monitoring features. Adds development work to monitor the printer’s Tapo P110 power consumption and initiate an automatic OctoPrint connection when the measured power exceeds 9 W.
 
-* Adds a separate Tapo P110 IP address for the Raspberry Pi.
-* Uses the same Tapo account credentials for both smart plugs.
-* Provides a configurable OctoPi power-off timer.
-* Waits for successful timelapse rendering before starting the OctoPi shutdown sequence.
-* Verifies the power-off timer before requesting a clean Linux shutdown.
-* Attempts to clear the timer if the shutdown request fails.
-* Adds extra power monitoring on the Ender Tapo P110 IP address and automatically connects the printer to OctoPi when it detects over 9W
-* Assumes that your printer and light bar are on the same Ender Tapo plug so both turn off after the customizable time in minutes.
+* Uses the existing printer Tapo P110 IP address.
+* Uses the tapo Python package to read current power consumption.
+* Targets automatic connection when power exceeds 9 W.
+* Automatic connection is still being developed and tested.
+* Existing shutdown timers, power-off actions, and timelapse handling are intended to remain unchanged.
 
 
 **Upgrading from version 0.2.0 to 0.3.0 or 0.3.1**
@@ -68,7 +65,7 @@ Retains the existing printer shutdown and Obico AI features and adds improved co
 ### Obico AI monitoring
 
 - Automatically disables Obico AI failure detection when a print starts.
--Provides a configurable delay before AI failure detection is enabled.
+- Provides a configurable delay before AI failure detection is enabled.
 - Enables AI monitoring after the selected delay if the print is still running.
 - Disables AI monitoring when a print completes, is cancelled, or fails.
 - Setting the Obico delay to 0 enables AI monitoring immediately.
@@ -156,7 +153,7 @@ https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay
 
 For the v0.3.0 development branch, the ZIP URL is:
 
-https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay/archive/refs/heads/v0.3.0.zip
+https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay/archive/refs/heads/v0.3.1.zip
 
 ## Initial configuration and testing
 
