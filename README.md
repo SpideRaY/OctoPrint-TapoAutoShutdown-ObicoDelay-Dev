@@ -1,4 +1,4 @@
-# **OctoPrint-TapoAutoShutdown v0.3.0**
+# **OctoPrint-TapoAutoShutdown v0.3.1**
 
 ## Version differences
 
@@ -23,7 +23,21 @@ Retains the existing printer shutdown and Obico AI features and adds improved co
 
 *Important: The OctoPi shutdown feature is optional. The smart plug timer operates independently of Linux, so allow sufficient time for the Raspberry Pi to shut down cleanly before power is cut.*
 
-**Upgrading from version 0.2.0 to 0.3.0**
+**v0.3.1 — Additional optional OctoPi shutdown control + Auto connect Octopi when Tapo senses printer and light are on the same plug**
+
+Retains the existing printer shutdown and Obico AI features and adds improved control of a second Tapo P110 connected to the Raspberry Pi running OctoPrint.
+
+* Adds a separate Tapo P110 IP address for the Raspberry Pi.
+* Uses the same Tapo account credentials for both smart plugs.
+* Provides a configurable OctoPi power-off timer.
+* Waits for successful timelapse rendering before starting the OctoPi shutdown sequence.
+* Verifies the power-off timer before requesting a clean Linux shutdown.
+* Attempts to clear the timer if the shutdown request fails.
+* Adds extra power monitoring on the Ender Tapo P110 IP address and automatically connects the printer to OctoPi when it detects over 9W
+* Assumes that your printer and light bar are on the same Ender Tapo plug so both turn off after the customizable time in minutes.
+
+
+**Upgrading from version 0.2.0 to 0.3.0 or 0.3.1**
 
 * Latest version retains the existing printer shutdown and Obico AI monitoring functionality while introducing the additional OctoPi plug controls.
 * To use automatic OctoPi shutdown, a second compatible Tapo P110 is required. 
