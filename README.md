@@ -38,7 +38,7 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 
 * Latest version retains the existing printer shutdown and Obico AI monitoring functionality while introducing the additional OctoPi plug controls.
 * To use automatic OctoPi shutdown, a second compatible Tapo P110 is required. 
-* Required to configure it's IP address separately from the printer plug.
+* Configure the OctoPi Tapo's IP address separately from the printer plug.
 * Both plugs will use the same Tapo account credentials from their application.
 * After upgrading, review the plugin settings and verify the configuration before enabling automatic OctoPi shutdown.
 
@@ -127,7 +127,7 @@ The following configuration was used during development and testing of the OctoP
 - OctoPi 1.1.0
 - OctoPrint 1.11.8
 - Python 3.11.2 (32-bit)
-- Python Tapo package 0.10.0
+- Python Tapo package 0.11.1
 
 ### Tapo Firmware
 
@@ -151,7 +151,7 @@ The following configuration was used during development and testing of the OctoP
 
 https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay
 
-For the v0.3.0 development branch, the ZIP URL is:
+For the v0.3.1 development branch, the ZIP URL is:
 
 https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay/archive/refs/heads/v0.3.1.zip
 
