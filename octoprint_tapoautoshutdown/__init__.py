@@ -25,7 +25,9 @@ class TapoAutoShutdownPlugin(
         self._timelapse_done = False
         self._timelapse_failed = False
         self._octopi_shutdown_started = False
-
+        self._auto_connect_handled = False
+        self._auto_connect_lock = threading.Lock()
+        
     def on_after_startup(self):
         self._logger.info("Tapo Auto Shutdown started")
 
