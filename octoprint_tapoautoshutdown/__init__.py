@@ -57,7 +57,7 @@ class TapoAutoShutdownPlugin(
             daemon=True,
         ).start()
 
-    # Start automatic printer connection monitoring
+        # Start automatic printer connection monitoring
         threading.Thread(
             target=self._monitor_ender_power_for_connection,
             daemon=True,
