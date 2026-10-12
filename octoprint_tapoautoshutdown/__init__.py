@@ -62,6 +62,54 @@ class TapoAutoShutdownPlugin(
             target=self._monitor_ender_power_for_connection,
             daemon=True,
         ).start()
+
+    def _monitor_ender_power_for_connection(self):
+        """Monitor printer power and request one automatic connection."""
+        consecutive_high = 0
+        connection_attempted = False
+        armed = True
+
+        while True:
+            try:
+                power = asyncio.run(self._read_ender_power())
+
+                if power is None:
+                    consecutive_high = 0
+                elif power <= 6.0:
+                    consecutive_high = 0
+                    armed = True
+                    connection_attempted = False
+                elif power > 8.0:
+                    consecutive_high += 1
+                else:
+                    consecutive_high = 0
+
+                if (
+                    armed
+                    and not connection_attempted
+                    and consecutive_high >= 3
+                ):
+                    armed = False
+                    connection_attempted = True
+                    consecutive_high = 0
+
+                    if self._printer.is_operational():
+                        self._logger.info(
+                            "Ender power is above 8 W, but printer is already connected"
+                        )
+                    else:
+                        self._logger.info(
+                            "Ender power is above 8 W for three readings - requesting printer connection"
+                        )
+                        self._printer.connect()
+
+            except Exception as e:
+                self._logger.error(
+                    "Automatic printer connection monitor error: %s",
+                    e,
+                )
+
+            time.sleep(1)
     
     def on_shutdown(self):
         self._cancel_obico_timer()
