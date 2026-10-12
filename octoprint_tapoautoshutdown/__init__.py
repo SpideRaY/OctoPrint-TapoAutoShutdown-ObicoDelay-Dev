@@ -57,6 +57,12 @@ class TapoAutoShutdownPlugin(
             daemon=True,
         ).start()
 
+    # Start automatic printer connection monitoring
+        threading.Thread(
+            target=self._monitor_ender_power_for_connection,
+            daemon=True,
+        ).start()
+    
     def on_shutdown(self):
         self._cancel_obico_timer()
 
