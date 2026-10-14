@@ -1,4 +1,4 @@
-# **OctoPrint-TapoAutoShutdown v0.3.1**
+# **OctoPrint-TapoAutoShutdown v0.3.2**
 
 ## Version differences
 
@@ -23,7 +23,7 @@ Retains the existing printer shutdown and Obico AI features and adds improved co
 
 *Important: The OctoPi shutdown feature is optional. The smart plug timer operates independently of Linux, so allow sufficient time for the Raspberry Pi to shut down cleanly before power is cut.*
 
-**v0.3.1 — Automatic printer connection (in development)**
+**v0.3.1 — Automatic printer connection **
 
 Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI monitoring features. Adds development work to monitor the printer’s Tapo P110 power consumption and initiate an automatic OctoPrint connection when the measured power exceeds 9 W.
 
@@ -32,6 +32,8 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 * Targets automatic connection when power exceeds 9 W.
 * Automatic connection is still being developed and tested.
 * Existing shutdown timers, power-off actions, and timelapse handling are intended to remain unchanged.
+
+**v0.3.2 — Adding optional preheat bed checkbox and send push notification when it's safe to remove print (in development)**
 
 
 **Upgrading from version 0.2.0 to 0.3.0 or 0.3.1**
