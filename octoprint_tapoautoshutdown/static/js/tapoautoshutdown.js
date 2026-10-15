@@ -10,7 +10,11 @@ function TapoAutoShutdownViewModel(parameters) {
                     data.temperature + "°C.",
                 type: "success",
                 hide: true,
-                delay: 5000
+                delay: 5000,
+                modules: {
+                    Animate: { animate: false },
+                    Mobile: { swipeDismiss: false }
+}
             });
         }
     };
