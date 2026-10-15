@@ -32,6 +32,7 @@ include = [
 [tool.setuptools.package-data]
 octoprint_tapoautoshutdown = [
     "templates/*.jinja2",
+    "static/js/*.js",
 ]
 
 [project.entry-points."octoprint.plugin"]
