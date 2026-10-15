@@ -27,6 +27,7 @@ class TapoAutoShutdownPlugin(
         self._octopi_shutdown_started = False
         self._auto_connect_handled = False
         self._auto_connect_lock = threading.Lock()
+        self._bed_preheat_handled = False
         
     def on_after_startup(self):
         self._logger.info("Tapo Auto Shutdown started")
@@ -119,6 +120,8 @@ class TapoAutoShutdownPlugin(
         # Check that the Printer has connected
         if event == "Connected":
             self._maybe_preheat_bed()
+        if self._bed_preheat_handled:
+            return
 
         # Start a new print and reset the event flags
         if event == "PrintStarted":
@@ -233,6 +236,7 @@ class TapoAutoShutdownPlugin(
 
         # Ask the printer firmware to heat the bed
         try:
+            self._bed_preheat_handled = True
             self._printer.set_temperature("bed", temperature)
             self._logger.info(
                 "Automatic bed preheat requested: %.1f C",
