@@ -120,8 +120,8 @@ class TapoAutoShutdownPlugin(
         # Check that the Printer has connected
         if event == "Connected":
             self._maybe_preheat_bed()
-        if self._bed_preheat_handled:
-            return
+        if event == "Disconnected":
+            self._bed_preheat_handled = False
 
         # Start a new print and reset the event flags
         if event == "PrintStarted":
@@ -195,6 +195,8 @@ class TapoAutoShutdownPlugin(
         # Only proceed if automatic bed preheat is enabled
         if not self._settings.get(["bed_preheat_enabled"]):
             return
+        if self._bed_preheat_handled:
+            return         
 
         # Make sure the printer is connected and idle
         if not self._printer.is_operational():
