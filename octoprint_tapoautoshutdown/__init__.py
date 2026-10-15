@@ -622,6 +622,8 @@ class TapoAutoShutdownPlugin(
             "password": "",
             "ip": "",
             "tapo_shutdown_delay": 5,
+            "bed_preheat_enabled": False,
+            "bed_preheat_temperature": 60,
 
             # OctoPi Tapo P110
             "octopi_tapo_enabled": False,
