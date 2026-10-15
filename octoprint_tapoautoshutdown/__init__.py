@@ -186,6 +186,64 @@ class TapoAutoShutdownPlugin(
             self._cancel_obico_timer()
             self._disable_obico_monitoring()
 
+    def _maybe_preheat_bed(self):
+        """Preheat the bed after connection if enabled and the Tapo is on."""
+
+        # Only proceed if automatic bed preheat is enabled
+        if not self._settings.get(["bed_preheat_enabled"]):
+            return
+
+        # Make sure the printer is connected and idle
+        if not self._printer.is_operational():
+            self._logger.info(
+                "Bed preheat skipped: printer is not operational"
+            )
+            return
+
+        if self._printer.is_printing():
+            self._logger.info(
+                "Bed preheat skipped: a print is already running"
+            )
+            return
+
+        # Check that the Ender Tapo is switched on
+        try:
+            power = asyncio.run(self._read_ender_power())
+            if power is None or power <= 0:
+                self._logger.warning(
+                    "Bed preheat skipped: Ender Tapo power not confirmed"
+                )
+                return
+        except Exception as e:
+            self._logger.error(
+                "Bed preheat skipped: could not check Ender Tapo: %s",
+                e,
+            )
+            return
+
+        # Read the configured target temperature
+        try:
+            temperature = float(
+                self._settings.get(["bed_preheat_temperature"])
+            )
+            if not 0 <= temperature <= 100:
+                raise ValueError("Temperature must be between 0 and 100")
+        except (TypeError, ValueError):
+            temperature = 60.0
+
+        # Ask the printer firmware to heat the bed
+        try:
+            self._printer.set_temperature("bed", temperature)
+            self._logger.info(
+                "Automatic bed preheat requested: %.1f C",
+                temperature,
+            )
+        except Exception as e:
+            self._logger.error(
+                "Failed to start automatic bed preheat: %s",
+                e,
+            )
+    
     def _maybe_start_octopi_shutdown(self):
         if self._octopi_shutdown_started:
             return
