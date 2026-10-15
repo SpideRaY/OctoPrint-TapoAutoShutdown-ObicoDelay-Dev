@@ -211,17 +211,25 @@ class TapoAutoShutdownPlugin(
             )
             return
 
-        # Check that the Ender Tapo is switched on
+        # Check the actual Ender Tapo on/off state
         try:
-            power = asyncio.run(self._read_ender_power())
-            if power is None or power <= 0:
-                self._logger.warning(
-                    "Bed preheat skipped: Ender Tapo power not confirmed"
+            username = self._settings.get(["username"])
+            password = self._settings.get(["password"])
+            ip = self._settings.get(["ip"])
+
+            client = ApiClient(username, password)
+            plug = await client.p110(ip)
+            info = await plug.get_device_info()
+
+            if not info.device_on:
+                self._logger.info(
+                    "Bed preheat skipped: Ender Tapo is switched off"
                 )
                 return
+
         except Exception as e:
             self._logger.error(
-                "Bed preheat skipped: could not check Ender Tapo: %s",
+                "Bed preheat skipped: could not check Tapo state: %s",
                 e,
             )
             return
