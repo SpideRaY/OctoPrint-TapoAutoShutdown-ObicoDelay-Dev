@@ -680,6 +680,11 @@ class TapoAutoShutdownPlugin(
     
     def is_template_autoescaped(self):
         return True
+
+    def get_assets(self):
+        return {
+            "js": ["js/tapoautoshutdown.js"]
+        }
          
     def get_template_configs(self):
         return [
