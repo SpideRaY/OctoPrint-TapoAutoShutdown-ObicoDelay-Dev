@@ -253,7 +253,7 @@ class TapoAutoShutdownPlugin(
                 temperature,
             )
             self._plugin_manager.send_plugin_message(
-            self._identifier,
+                self._identifier,
                 {"type": "bed_preheat", "temperature": temperature},
             )
             
