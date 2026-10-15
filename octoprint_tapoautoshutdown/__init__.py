@@ -116,6 +116,10 @@ class TapoAutoShutdownPlugin(
 
     def on_event(self, event, payload):
 
+        # Check that the Printer has connected
+        if event == "Connected":
+            self._maybe_preheat_bed()
+
         # Start a new print and reset the event flags
         if event == "PrintStarted":
             self._successful_print = False
