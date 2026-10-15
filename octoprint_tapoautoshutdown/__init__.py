@@ -218,8 +218,8 @@ class TapoAutoShutdownPlugin(
             ip = self._settings.get(["ip"])
 
             client = ApiClient(username, password)
-            plug = await client.p110(ip)
-            info = await plug.get_device_info()
+            plug = asyncio.run(client.p110(ip))
+            info = asyncio.run(plug.get_device_info())
 
             if not info.device_on:
                 self._logger.info(
