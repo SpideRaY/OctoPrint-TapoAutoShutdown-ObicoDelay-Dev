@@ -16,6 +16,7 @@ class TapoAutoShutdownPlugin(
     octoprint.plugin.EventHandlerPlugin,
     octoprint.plugin.SettingsPlugin,
     octoprint.plugin.TemplatePlugin,
+    octoprint.plugin.AssetPlugin,
 ):
 
     def __init__(self):
