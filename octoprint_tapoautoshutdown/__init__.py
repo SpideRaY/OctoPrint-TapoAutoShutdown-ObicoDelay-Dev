@@ -257,6 +257,11 @@ class TapoAutoShutdownPlugin(
                 "Failed to start automatic bed preheat: %s",
                 e,
             )
+            
+            self._plugin_manager.send_plugin_message(
+                self._identifier,
+                {"type": "bed_preheat", "temperature": temperature},
+            )
     
     def _maybe_start_octopi_shutdown(self):
         if self._octopi_shutdown_started:
