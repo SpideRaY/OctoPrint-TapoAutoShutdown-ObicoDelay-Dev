@@ -26,6 +26,14 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         if (data.type === "bed_preheat_complete") {
+
+            // Close the original green preheat notification
+            if (bedPreheatNotification) {
+                bedPreheatNotification.remove();
+                bedPreheatNotification = null;
+            }
+
+            // Show the temperature-reached warning for 3 minutes
             bedPreheatCompleteNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "Warning: The bed has reached " +
