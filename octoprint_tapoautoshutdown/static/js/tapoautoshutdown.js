@@ -1,6 +1,7 @@
 function TapoAutoShutdownViewModel(parameters) {
     var self = this;
-    var bedPreheatNotification = null;    
+    var bedPreheatNotification = null;
+    var bedPreheatCompleteNotification = null;    
     var bedCoolingReminder = null;
     var bedCoolingShutdownWarning = null;
     var bedCoolingShutdown = null;
@@ -25,7 +26,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         if (data.type === "bed_preheat_complete") {
-            new PNotify({
+            bedPreheatCompleteNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "Warning: The bed has reached " +
                     data.temperature + "°C. Ready to print!",
