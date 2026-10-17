@@ -621,7 +621,7 @@ class TapoAutoShutdownPlugin(
             "username": "",
             "password": "",
             "ip": "",
-            "tapo_shutdown_delay": 5,
+            "tapo_shutdown_delay": 15,
 
             # OctoPi Tapo P110
             "octopi_tapo_enabled": False,
