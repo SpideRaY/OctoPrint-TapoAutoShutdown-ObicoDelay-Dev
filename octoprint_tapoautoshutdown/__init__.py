@@ -642,6 +642,36 @@ class TapoAutoShutdownPlugin(
                                 actual,
                             )
 
+                if actual <= 32.0:
+                    should_notify_32 = False
+                    with self._bed_cooling_monitor_lock:
+                        if (
+                            generation == self._bed_cooling_monitor_generation
+                            and not self._bed_32_notified
+                        ):
+                            self._bed_32_notified = True
+                            should_notify_32 = True
+
+                    if should_notify_32:
+                        self._plugin_manager.send_plugin_message(
+                            "tapoautoshutdown",
+                            {
+                                "type": "bed_cooling_shutdown_warning",
+                                "temperature": round(actual, 1),
+                                "message": (
+                                    "The bed is at 32°C. "
+                                    "The printer's Tapo plug will switch off "
+                                    "automatically when the bed reaches 30°C."
+                                ),
+                            },
+                        )
+                        self._logger.info(
+                            "Sent one-time Tapo shutdown warning at %.1f C",
+                            actual,
+                        )    
+
+
+            
             except Exception as e:
                 self._logger.warning(
                     "Bed-cooling monitor could not read temperature or process state; "
