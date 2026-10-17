@@ -2,7 +2,8 @@ function TapoAutoShutdownViewModel(parameters) {
     var self = this;
     var bedCoolingReminder = null;
     var bedCoolingShutdownWarning = null;
-
+    var bedCoolingShutdown = null;
+    
     self.onDataUpdaterPluginMessage = function (plugin, data) {
         if (plugin !== "tapoautoshutdown") {
             return;
@@ -53,14 +54,13 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         if (data.type === "bed_cooling_shutdown") {
-            new PNotify({
+            bedCoolingShutdown = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "The bed has cooled to " +
                     data.temperature +
                     "°C. Switching off the printer.",
                 type: "success",
                 hide: false,
-                delay: 30000,
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
