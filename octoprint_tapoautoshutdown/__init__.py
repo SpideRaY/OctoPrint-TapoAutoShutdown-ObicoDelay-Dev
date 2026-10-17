@@ -271,7 +271,47 @@ class TapoAutoShutdownPlugin(
                 "Failed to start automatic bed preheat: %s",
                 e,
             )
-            
+
+    def _monitor_bed_preheat_completion(self, target_temperature):
+        """Notify once the bed reaches its preheat target."""
+        while True:
+            time.sleep(5)
+
+            try:
+                temperatures = self._printer.get_current_temperatures()
+                bed = temperatures.get("bed") if isinstance(
+                    temperatures, dict
+                ) else None
+                actual = bed.get("actual") if isinstance(bed, dict) else None
+
+                if not isinstance(actual, (int, float)):
+                    self._logger.warning(
+                        "Bed preheat monitor: actual temperature unavailable; retrying"
+                    )
+                    continue
+
+                if actual >= target_temperature:
+                    if not self._bed_preheat_complete_notified:
+                        self._bed_preheat_complete_notified = True
+                        self._plugin_manager.send_plugin_message(
+                            "tapoautoshutdown",
+                            {
+                                "type": "bed_preheat_complete",
+                                "temperature": round(actual, 1),
+                            },
+                        )
+                        self._logger.info(
+                            "Bed reached preheat target: %.1f C",
+                            actual,
+                        )
+                    return
+
+            except Exception as e:
+                self._logger.warning(
+                    "Bed preheat monitor error; retrying: %s",
+                    e,
+                )
+    
     def _maybe_start_octopi_shutdown(self):
         if self._octopi_shutdown_started:
             return
