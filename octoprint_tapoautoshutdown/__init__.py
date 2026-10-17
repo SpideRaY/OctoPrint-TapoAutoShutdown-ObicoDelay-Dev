@@ -629,10 +629,10 @@ class TapoAutoShutdownPlugin(
 
             # OctoPi shutdown
             "octopi_shutdown_enabled": False,
-            "octopi_shutdown_delay": 15,
+            "octopi_shutdown_delay": 20,
 
             # Obico
-            "obico_monitor_delay": 60,
+            "obico_monitor_delay": 30,
         }
         
     def get_settings_version(self):
