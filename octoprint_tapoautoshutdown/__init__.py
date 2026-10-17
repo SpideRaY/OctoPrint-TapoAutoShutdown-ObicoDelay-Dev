@@ -614,7 +614,7 @@ class TapoAutoShutdownPlugin(
                             continue
                         return
 
-                    if actual <= 40.0:
+                    if actual <= 32.0:
                         should_notify = False
                         with self._bed_cooling_monitor_lock:
                             if (
