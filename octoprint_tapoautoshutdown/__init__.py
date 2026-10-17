@@ -266,7 +266,13 @@ class TapoAutoShutdownPlugin(
                 "tapoautoshutdown",
                 {"type": "bed_preheat", "temperature": temperature},
             )
-            
+            threading.Thread(
+                target=self._monitor_bed_preheat_completion,
+                args=(temperature,),
+                daemon=True,
+            ).start()
+
+            except Exception as e:   
         except Exception as e:
             self._logger.error(
                 "Failed to start automatic bed preheat: %s",
