@@ -272,7 +272,6 @@ class TapoAutoShutdownPlugin(
                 daemon=True,
             ).start()
 
-            except Exception as e:   
         except Exception as e:
             self._logger.error(
                 "Failed to start automatic bed preheat: %s",
