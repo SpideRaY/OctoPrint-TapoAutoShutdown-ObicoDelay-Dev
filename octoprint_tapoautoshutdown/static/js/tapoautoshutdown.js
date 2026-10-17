@@ -41,7 +41,7 @@ function TapoAutoShutdownViewModel(parameters) {
             new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: data.message,
-                type: "notice",
+                type: "error",
                 hide: false,
                 modules: {
                     Animate: { animate: false },
