@@ -255,6 +255,7 @@ class TapoAutoShutdownPlugin(
 
         # Ask the printer firmware to heat the bed
         try:
+            self._bed_preheat_complete_notified = False
             self._bed_preheat_handled = True
             self._printer.set_temperature("bed", temperature)
             self._logger.info(
