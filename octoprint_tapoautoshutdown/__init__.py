@@ -30,9 +30,9 @@ class TapoAutoShutdownPlugin(
         self._auto_connect_lock = threading.Lock()
         self._bed_preheat_handled = False
         self._bed_cooling_monitor_lock = threading.Lock()
-        self._bed_cooling_monitor_generation = 0
-        self._bed_32_notified = False        
+        self._bed_cooling_monitor_generation = 0      
         self._bed_40_notified = False
+        self._bed_32_notified = False  
         
     def on_after_startup(self):
         self._logger.info("Tapo Auto Shutdown started")
@@ -137,6 +137,7 @@ class TapoAutoShutdownPlugin(
             with self._bed_cooling_monitor_lock:
                 self._bed_cooling_monitor_generation += 1
                 self._bed_40_notified = False
+                self._bed_32_notified = False  
             self._disable_obico_monitoring()
             self._start_obico_timer()
            
@@ -562,7 +563,7 @@ class TapoAutoShutdownPlugin(
             self._bed_cooling_monitor_generation += 1
             generation = self._bed_cooling_monitor_generation
             self._bed_40_notified = False
-
+            self._bed_32_notified = False  
         threading.Thread(
             target=self._bed_cooling_monitor_background,
             args=(generation,),
