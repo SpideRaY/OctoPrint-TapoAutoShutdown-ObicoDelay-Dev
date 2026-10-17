@@ -23,7 +23,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         if (data.type === "bed_cooling_reminder") {
-            new PNotify({
+            bedCoolingReminder = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "The bed is at " + data.temperature +
                     "°C — try removing your print. " +
