@@ -48,6 +48,26 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
+        if (data.type === "bed_preheat_failed") {
+            if (bedPreheatNotification) {
+            bedPreheatNotification.remove();
+            bedPreheatNotification = null;
+        }
+
+        bedPreheatCompleteNotification = new PNotify({
+            title: "Tapo Auto Shutdown",
+            text: data.message ||
+                "Warning: Bed preheating timed out. Check the printer before printing.",
+            type: "warning",
+            hide: true,
+            delay: 180000,
+            modules: {
+                Animate: { animate: false },
+                Mobile: { swipeDismiss: false }
+            }
+        });
+    }
+
         if (data.type === "bed_cooling_reminder") {
             bedCoolingReminder = new PNotify({
                 title: "Tapo Auto Shutdown",
