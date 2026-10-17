@@ -1,6 +1,7 @@
 function TapoAutoShutdownViewModel(parameters) {
     var self = this;
     var bedCoolingReminder = null;
+    var bedCoolingShutdownWarning = null;
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
         if (plugin !== "tapoautoshutdown") {
@@ -39,7 +40,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         if (data.type === "bed_cooling_shutdown_warning") {
-            new PNotify({
+            bedCoolingShutdownWarning = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: data.message,
                 type: "error",
