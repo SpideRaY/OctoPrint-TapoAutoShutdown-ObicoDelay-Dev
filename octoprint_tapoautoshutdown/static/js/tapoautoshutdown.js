@@ -37,6 +37,19 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
+        if (data.type === "bed_cooling_shutdown_warning") {
+            new PNotify({
+                title: "Tapo Auto Shutdown",
+                text: data.message,
+                type: "notice",
+                hide: false,
+                modules: {
+                    Animate: { animate: false },
+                    Mobile: { swipeDismiss: false }
+                }
+            });
+        }
+
         if (data.type === "bed_cooling_shutdown") {
             new PNotify({
                 title: "Tapo Auto Shutdown",
