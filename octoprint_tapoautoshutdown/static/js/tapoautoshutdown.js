@@ -1,5 +1,6 @@
 function TapoAutoShutdownViewModel(parameters) {
     var self = this;
+    var bedCoolingReminder = null;
 
     self.onDataUpdaterPluginMessage = function (plugin, data) {
         if (plugin !== "tapoautoshutdown") {
