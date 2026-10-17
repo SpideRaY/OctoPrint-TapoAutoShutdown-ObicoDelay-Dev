@@ -130,6 +130,9 @@ class TapoAutoShutdownPlugin(
             self._timelapse_done = False
             self._timelapse_failed = False
             self._octopi_shutdown_started = False
+            with self._bed_cooling_monitor_lock:
+                self._bed_cooling_monitor_generation += 1
+                self._bed_40_notified = False
             self._disable_obico_monitoring()
             self._start_obico_timer()
            
@@ -153,22 +156,19 @@ class TapoAutoShutdownPlugin(
             self._cancel_obico_timer()
             self._disable_obico_monitoring()
 
-            # Start printer shutdown independently
+            # Start bed-temperature monitoring for printer shutdown.
             username = self._settings.get(["username"])
             password = self._settings.get(["password"])
             ip = self._settings.get(["ip"])
 
             if username and password and ip:
                 self._logger.info(
-                    "Print completed - starting printer shutdown timer"
+                    "Print completed - starting bed-cooling monitor"
                 )
-                threading.Thread(
-                    target=self._arm_ender_tapo_timer_background,
-                    daemon=True,
-                ).start()
+                self._start_bed_cooling_monitor()
             else:
-                self._logger.info(
-                    "Printer shutdown skipped - Tapo credentials or IP missing"
+                self._logger.warning(
+                    "Bed-cooling monitor not started: Tapo credentials or IP missing"
                 )
 
             # Check whether OctoPi shutdown should proceed
@@ -187,6 +187,8 @@ class TapoAutoShutdownPlugin(
             self._successful_print = False
             self._timelapse_done = False
             self._timelapse_failed = False
+            with self._bed_cooling_monitor_lock:
+                self._bed_cooling_monitor_generation += 1
             self._cancel_obico_timer()
             self._disable_obico_monitoring()
 
@@ -550,92 +552,122 @@ class TapoAutoShutdownPlugin(
             )
             return None
     
-    # Arm the Ender Tapo P110 shutdown timer
-    async def _arm_ender_tapo_timer(self):
+    # Monitor the real bed temperature after a successful print.
+    def _start_bed_cooling_monitor(self):
+        with self._bed_cooling_monitor_lock:
+            self._bed_cooling_monitor_generation += 1
+            generation = self._bed_cooling_monitor_generation
+            self._bed_40_notified = False
+
+        threading.Thread(
+            target=self._bed_cooling_monitor_background,
+            args=(generation,),
+            daemon=True,
+        ).start()
+
+    def _bed_cooling_monitor_background(self, generation):
+        """Notify at 40 C and switch off the printer plug at 30 C or below."""
+        self._logger.info(
+            "Bed-cooling monitor started: reminder at 40 C, shutdown at 30 C"
+        )
+
+        while True:
+            with self._bed_cooling_monitor_lock:
+                if generation != self._bed_cooling_monitor_generation:
+                    self._logger.info("Bed-cooling monitor stopped")
+                    return
+
+            try:
+                temperatures = self._printer.get_current_temperatures()
+                bed = temperatures.get("bed") if isinstance(temperatures, dict) else None
+                actual = bed.get("actual") if isinstance(bed, dict) else None
+
+                if not isinstance(actual, (int, float)):
+                    self._logger.warning(
+                        "Bed-cooling monitor: actual bed temperature unavailable; will retry"
+                    )
+                else:
+                    actual = float(actual)
+                    self._logger.info(
+                        "Bed-cooling monitor: bed actual temperature %.1f C",
+                        actual,
+                    )
+
+                    if actual <= 30.0:
+                        self._logger.info(
+                            "Bed reached %.1f C; switching off Ender Tapo plug",
+                            actual,
+                        )
+                        switched_off = asyncio.run(self._switch_off_ender_tapo())
+                        if switched_off:
+                            self._logger.info(
+                                "Ender Tapo plug switched off after bed cooled to 30 C or below"
+                            )
+                        else:
+                            self._logger.error(
+                                "Could not switch off Ender Tapo plug; monitor will retry"
+                            )
+                            time.sleep(10)
+                            continue
+                        return
+
+                    if actual <= 40.0:
+                        should_notify = False
+                        with self._bed_cooling_monitor_lock:
+                            if (
+                                generation == self._bed_cooling_monitor_generation
+                                and not self._bed_40_notified
+                            ):
+                                self._bed_40_notified = True
+                                should_notify = True
+
+                        if should_notify:
+                            self._plugin_manager.send_plugin_message(
+                                "tapoautoshutdown",
+                                {
+                                    "type": "bed_cooling_reminder",
+                                    "temperature": round(actual, 1),
+                                    "message": (
+                                        "Bed is at 40°C or below — try removing your print. "
+                                        "The printer will switch off automatically at 30°C."
+                                    ),
+                                },
+                            )
+                            self._logger.info(
+                                "Sent one-time bed-removal reminder at %.1f C",
+                                actual,
+                            )
+
+            except Exception as e:
+                self._logger.warning(
+                    "Bed-cooling monitor could not read temperature or process state; "
+                    "it will retry: %s",
+                    e,
+                )
+
+            time.sleep(10)
+
+    async def _switch_off_ender_tapo(self):
+        """Switch off the Ender plug directly; do not arm a fixed timer."""
         username = self._settings.get(["username"])
         password = self._settings.get(["password"])
         ip = self._settings.get(["ip"])
 
         if not username or not password or not ip:
             self._logger.error(
-                "Ender shutdown cancelled: Tapo credentials or IP are missing"
+                "Cannot switch off Ender Tapo: credentials or IP are missing"
             )
             return False
-
-        plug = None
 
         try:
             client = ApiClient(username, password)
             plug = await client.p110(ip)
-
-            try:
-                delay_minutes = int(
-                    self._settings.get(["tapo_shutdown_delay"])
-                )
-                if not 1 <= delay_minutes <= 60:
-                    raise ValueError("Delay must be between 1 and 60 minutes")
-            except (TypeError, ValueError):
-                delay_minutes = 5
-
-            delay_seconds = delay_minutes * 60
-            await plug.set_timer(delay_seconds, PowerState.Off)
-            timer = await plug.get_timer()
-
-            if (
-                timer is None
-                or timer.desired_state != PowerState.Off
-                or timer.remaining_s is None
-                or timer.remaining_s <= 0
-                ):
-                self._logger.error(
-                    "Ender shutdown cancelled: Tapo timer verification failed"
-                )
-                try:
-                    await plug.clear_timer()
-                except Exception as clear_error:
-                    self._logger.error(
-                    "Could not clear unverified Ender Tapo timer: %s",
-                    clear_error,
-                    )
-                return False
-
-            self._logger.info(
-                "Ender Tapo shutdown timer verified: power off in approximately %s seconds",
-                timer.remaining_s,
-            )
+            await plug.off()
             return True
-
         except Exception as e:
-            self._logger.error(
-                "Failed to arm or verify Ender Tapo shutdown timer: %s",
-                e,
-            )
-            if plug is not None:
-                try:
-                    await plug.clear_timer()
-                except Exception as clear_error:
-                    self._logger.error(
-                        "Could not clear Ender Tapo timer after error: %s",
-                        clear_error,
-                    )
-                return False
+            self._logger.error("Failed to switch off Ender Tapo plug: %s", e)
+            return False
 
-    # Run the Ender shutdown timer in the background
-    def _arm_ender_tapo_timer_background(self):
-        try:
-            timer_armed = asyncio.run(
-                self._arm_ender_tapo_timer()
-            )
-            if not timer_armed:
-                self._logger.error(
-                    "Ender shutdown cancelled because the Tapo timer could not be armed"
-                )
-        except Exception as e:
-            self._logger.error(
-                "Failed to start Ender Tapo shutdown timer: %s",
-                e,
-            )
-    
     # Run the OctoPi shutdown sequence in the background
     def _octopi_shutdown_sequence(self):
         timer_armed = asyncio.run(
@@ -708,7 +740,6 @@ class TapoAutoShutdownPlugin(
             "username": "",
             "password": "",
             "ip": "",
-            "tapo_shutdown_delay": 5,
             "bed_preheat_enabled": False,
             "bed_preheat_temperature": 60,
 
