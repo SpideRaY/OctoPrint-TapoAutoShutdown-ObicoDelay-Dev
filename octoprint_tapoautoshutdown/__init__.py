@@ -29,6 +29,9 @@ class TapoAutoShutdownPlugin(
         self._auto_connect_handled = False
         self._auto_connect_lock = threading.Lock()
         self._bed_preheat_handled = False
+        self._bed_cooling_monitor_lock = threading.Lock()
+        self._bed_cooling_monitor_generation = 0
+        self._bed_40_notified = False
         
     def on_after_startup(self):
         self._logger.info("Tapo Auto Shutdown started")
