@@ -15,8 +15,7 @@ function TapoAutoShutdownViewModel(parameters) {
                 text: "Bed preheat requested. Target: " +
                     data.temperature + "°C.",
                 type: "success",
-                hide: true,
-                delay: 5000,
+                hide: false,
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
