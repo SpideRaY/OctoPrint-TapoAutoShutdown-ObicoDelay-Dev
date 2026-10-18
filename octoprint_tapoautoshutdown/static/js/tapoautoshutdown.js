@@ -73,8 +73,6 @@ function TapoAutoShutdownViewModel(parameters) {
                 title: "Tapo Auto Shutdown",
                 text: "The bed is at " + data.temperature +
                     "°C — try removing your print. " +
-                    "The printer will switch off automatically " +
-                    "when the bed reaches 30°C.",
                 type: "notice",
                 hide: false,
                 modules: {
