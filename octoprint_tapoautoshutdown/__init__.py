@@ -696,6 +696,15 @@ class TapoAutoShutdownPlugin(
                             self._logger.info(
                                 "Ender Tapo plug switched off after bed cooled to 30 C or below"
                             )
+                        self._plugin_manager.send_plugin_message(
+                            "tapoautoshutdown",
+                            {
+                                "type": "bed_cooling_shutdown",
+                                "temperature": round(actual, 1),
+
+                            },
+                        )      
+                        
                         else:
                             self._logger.error(
                                 "Could not switch off Ender Tapo plug; monitor will retry"
@@ -759,8 +768,6 @@ class TapoAutoShutdownPlugin(
                             actual,
                         )    
 
-
-            
             except Exception as e:
                 self._logger.warning(
                     "Bed-cooling monitor could not read temperature or process state; "
