@@ -705,12 +705,11 @@ class TapoAutoShutdownPlugin(
                                 },
                             )                   
                         else:
-                        self._logger.error(
-                            "Could not switch off Ender Tapo plug; monitor will retry"
-                        )
-                        time.sleep(10)
-                        continue
-                        
+                            self._logger.error(
+                                "Could not switch off Ender Tapo plug; monitor will retry"
+                            )
+                            time.sleep(10)
+                            continue  
                     return
 
                     if actual <= 40.0:
