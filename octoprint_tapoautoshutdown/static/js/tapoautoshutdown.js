@@ -95,12 +95,22 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
-        if (data.type === "bed_cooling_shutdown") {
+       if (data.type === "bed_cooling_shutdown") {
+            if (bedCoolingReminder) {
+                bedCoolingReminder.remove();
+                bedCoolingReminder = null;
+            }
+
+            if (bedCoolingShutdownWarning) {
+                bedCoolingShutdownWarning.remove();
+                bedCoolingShutdownWarning = null;
+            }
+
             bedCoolingShutdown = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "The bed has cooled to " +
                     data.temperature +
-                    "°C. Switching off the printer.",
+                    "°C. The printer has been switched off.",
                 type: "success",
                 hide: false,
                 modules: {
@@ -108,7 +118,7 @@ function TapoAutoShutdownViewModel(parameters) {
                     Mobile: { swipeDismiss: false }
                 }
             });
-        }
+        } 
     };
 }
 
