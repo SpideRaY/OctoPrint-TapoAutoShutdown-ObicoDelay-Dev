@@ -37,6 +37,16 @@ class TapoAutoShutdownPlugin(
         
     def on_after_startup(self):
         self._logger.info("Tapo Auto Shutdown started")
+ 
+        # Start silent Raspberry Pi SoC temperature logging (recovered v0.3.3).
+        # This logs readings only; it does not show UI alerts or initiate shutdown.
+        if not getattr(self, "_soc_temperature_thread_started", False):
+            self._soc_temperature_thread_started = True
+            threading.Thread(
+                target=self._monitor_soc_temperature,
+                daemon=True,
+                name="tapo-soc-temperature-monitor",
+            ).start()
 
         def check_for_obico():
             time.sleep(5)
@@ -69,6 +79,31 @@ class TapoAutoShutdownPlugin(
             target=self._monitor_ender_power_for_connection,
             daemon=True,
         ).start()
+
+    def _monitor_soc_temperature(self):
+        """Log Raspberry Pi SoC temperature every 30 seconds."""
+        sensor_path = "/sys/class/thermal/thermal_zone0/temp"
+
+        while True:
+            try:
+                with open(sensor_path, "r", encoding="ascii") as sensor:
+                    raw_temperature = sensor.read().strip()
+
+                # Linux reports this value in thousandths of a degree C.
+                temperature_c = int(raw_temperature) / 1000.0
+                self._logger.info("SoC temperature: %.1f°C", temperature_c)
+            except (OSError, ValueError) as exc:
+                self._logger.warning(
+                    "Could not read SoC temperature from %s: %s",
+                    sensor_path,
+                    exc,
+                )
+            except Exception:
+                self._logger.exception(
+                    "Unexpected error while reading SoC temperature"
+                )
+
+            time.sleep(30)
 
     def _monitor_ender_power_for_connection(self):
         """Monitor printer power and request one automatic connection."""
