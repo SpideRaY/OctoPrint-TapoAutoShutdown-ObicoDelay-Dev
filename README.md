@@ -37,6 +37,8 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 
 * Checking the Printer bed temp and Tapo power plug wattage then turn off the plug
 
+**v0.3.23 - Monitoring the Raspberry Pi temperature and activating an autoshut down if it reaches over 80 degrees
+
 **Upgrading to the latest version**
 
 * Latest version retains the existing printer shutdown and Obico AI monitoring functionality while introducing the additional OctoPi plug controls.
