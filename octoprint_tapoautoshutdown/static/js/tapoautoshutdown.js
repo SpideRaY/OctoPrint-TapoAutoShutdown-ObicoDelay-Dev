@@ -30,6 +30,23 @@ function TapoAutoShutdownViewModel(parameters) {
         if (plugin !== "tapoautoshutdown") {
             return;
         }
+
+        // LIGHT BAR REMINDER: shown before automatic bed preheating.
+        if (data.type === "light_bar_reminder") {
+            new PNotify({
+                title: "Tapo Auto Shutdown - Light Bar Reminder",
+                text: "Have you turned your light bar on? " +
+                    "It helps illuminate the printer for clearer " +
+                    "video when rendering timelapses.",
+                type: "warning",
+                hide: true,
+                delay: 15000,
+                modules: {
+                    Animate: { animate: false },
+                    Mobile: { swipeDismiss: false }
+                }
+            });
+        }
      
         // PREHEAT STARTED: persistent green/success notification.
         // It stays visible until the completion/failure event removes it
