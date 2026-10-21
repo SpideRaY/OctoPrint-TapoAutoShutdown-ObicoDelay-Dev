@@ -727,8 +727,7 @@ class TapoAutoShutdownPlugin(
                                 "Could not switch off Ender Tapo plug; monitor will retry"
                             )
                             time.sleep(10)
-                            continue  
-                    return
+                            continue 
 
                     if actual <= 40.0:
                         should_notify = False
