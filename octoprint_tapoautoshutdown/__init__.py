@@ -324,7 +324,58 @@ class TapoAutoShutdownPlugin(
                         # Only announce "Ready to print" at 60 C or above.
                         # A lower test preset (for example, 30 C) must not
                         # trigger the ready-to-print notification.
+                        
                         if target_temperature >= 60.0 and actual >= 60.0:
+                            # Check Tapo power to see whether the light bar
+                            # appears to be off. Take three readings to reduce
+                            # the chance of a false warning.
+                            power_readings = []
+
+                            for reading_number in range(3):
+                                power = asyncio.run(
+                                    self._read_ender_power()
+                                )
+
+                                if power is not None:
+                                    power_readings.append(power)
+
+                                if reading_number < 2:
+                                    time.sleep(1)
+
+                            if power_readings:
+                                sorted_readings = sorted(power_readings)
+                                median_power = sorted_readings[
+                                    len(sorted_readings) // 2
+                                ]
+
+                                self._logger.info(
+                                    "Light-bar check: median power %.2f W "
+                                    "from %s reading(s)",
+                                    median_power,
+                                    len(power_readings),
+                                )
+
+                                # Previous observations: approximately 5 W
+                                # with the light bar off and 9 W with it on.
+                                if median_power <= 6.0:
+                                    self._plugin_manager.send_plugin_message(
+                                        "tapoautoshutdown",
+                                        {
+                                            "type": "light_bar_warning",
+                                            "power": round(median_power, 1),
+                                        },
+                                    )
+                                    self._logger.warning(
+                                        "Light bar may be off: %.1f W",
+                                        median_power,
+                                    )
+                            else:
+                                self._logger.warning(
+                                    "Light-bar check skipped: "
+                                    "no valid Tapo power readings"
+                                )
+
+                            # Preserve the existing ready-to-print notification.
                             self._plugin_manager.send_plugin_message(
                                 "tapoautoshutdown",
                                 {
@@ -336,6 +387,7 @@ class TapoAutoShutdownPlugin(
                                 "Bed reached print-ready temperature: %.1f C",
                                 actual,
                             )
+
                         else:
                             self._logger.info(
                                 "Bed reached preheat preset %.1f C; "
