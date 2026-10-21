@@ -49,11 +49,13 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         if (data.type === "bed_preheat_failed") {
+
+             // Close the original green preheat notification
             if (bedPreheatNotification) {
             bedPreheatNotification.remove();
             bedPreheatNotification = null;
         }
-            
+            // Bed Pre-heat timed out
             bedPreheatCompleteNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: data.message ||
