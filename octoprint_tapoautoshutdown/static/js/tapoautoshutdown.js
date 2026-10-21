@@ -84,7 +84,7 @@ function TapoAutoShutdownViewModel(parameters) {
                 title: "Tapo Auto Shutdown",
                 text: "The bed has reached " +
                     (data.temperature != null ? data.temperature : 50) +
-                    "°C. Ready to print!",
+                    "°C.",
                 type: "notice",
                 hide: true,
                 delay: 30000,
