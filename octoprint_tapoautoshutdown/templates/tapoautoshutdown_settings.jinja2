@@ -21,21 +21,6 @@
     <div class="controls">
         <label class="checkbox">
             <input type="checkbox"
-                data-bind="checked: settings.plugins.tapoautoshutdown.bed_preheat_enabled">
-            Enable automatic bed preheat
-        </label>
-        <p class="help-block">
-            Automatically heat the bed after the printer Tapo is on and
-            OctoPrint has connected successfully.
-        </p>
-    </div>
-</div>
-
-<div class="control-group">
-    <label class="control-label">Automatic bed preheat</label>
-    <div class="controls">
-        <label class="checkbox">
-            <input type="checkbox"
                    data-bind="checked: settings.plugins.tapoautoshutdown.bed_preheat_enabled">
             Enable automatic bed preheat
         </label>
@@ -43,6 +28,15 @@
             Automatically heat the bed to a fixed target of 50°C after
             the printer Tapo is on and OctoPrint has connected successfully.
         </p>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label">Tapo account username</label>
+    <div class="controls">
+        <input type="text"
+            class="input-medium"
+            data-bind="value: settings.plugins.tapoautoshutdown.username">
     </div>
 </div>
 
