@@ -40,7 +40,7 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 * Added warning box to show that the bed is preheating
 * Added warning box to show that the bed has reached the desired preset temperature.
 * Added warning boxes to tell the user to try to remove a print at 40°C+ a final reminder at 32°C
-* Added warning box to show that the printer has turned off at 30 °C
+* Added warning box to show that the printer has turned off at 30°C
 
 **Upgrading to the latest version**
 
@@ -159,9 +159,9 @@ The following configuration was used during development and testing of the OctoP
 
 https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay
 
-For the v0.3.1 development branch, the ZIP URL is:
+For the v0.3.2 development branch, the ZIP URL is:
 
-https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay/archive/refs/heads/v0.3.1.zip
+https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay/archive/refs/heads/v0.3.2.zip
 
 ## Initial configuration and testing
 
