@@ -32,6 +32,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         // LIGHT BAR REMINDER: shown before automatic bed preheating.
+        // Show warning for 30 seconds then hide gives the user time to turn it ON.     
         if (data.type === "light_bar_reminder") {
             new PNotify({
                 title: "Tapo Auto Shutdown - Light Bar Reminder",
@@ -40,7 +41,7 @@ function TapoAutoShutdownViewModel(parameters) {
                     "video when rendering timelapses.",
                 type: "warning",
                 hide: true,
-                delay: 15000,
+                delay: 30000,
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
