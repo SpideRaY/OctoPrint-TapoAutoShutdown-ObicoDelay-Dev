@@ -30,24 +30,6 @@ function TapoAutoShutdownViewModel(parameters) {
         if (plugin !== "tapoautoshutdown") {
             return;
         }
-
-        // LIGHT BAR WARNING: the Tapo power reading suggests
-        // that the light bar may be switched off.
-        if (data.type === "light_bar_warning") {
-            new PNotify({
-                title: "Tapo Auto Shutdown - Light Bar Warning",
-                text: "Your light bar appears to be off. " +
-                    "Do you want to turn it on? " +
-                    "Tapo power reading: " + data.power + " W.",
-                type: "warning",
-                hide: true,
-                delay: 180000,
-                modules: {
-                    Animate: { animate: false },
-                    Mobile: { swipeDismiss: false }
-                }
-            });
-        }
      
         // PREHEAT STARTED: persistent green/success notification.
         // It stays visible until the completion/failure event removes it
