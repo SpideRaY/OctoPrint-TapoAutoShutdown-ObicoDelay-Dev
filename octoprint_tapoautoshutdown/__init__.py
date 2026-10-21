@@ -768,21 +768,21 @@ class TapoAutoShutdownPlugin(
 
                         if should_notify_32:
                             self._plugin_manager.send_plugin_message(
-                            "tapoautoshutdown",
-                            {
-                                "type": "bed_cooling_shutdown_warning",
-                                "temperature": round(actual, 1),
-                                "message": (
-                                    "The bed is at 32°C. "
-                                    "The printer's Tapo plug will switch off "
-                                    "automatically when the bed reaches 30°C."
-                                ),
-                            },
-                        )
-                        self._logger.info(
-                            "Sent one-time Tapo shutdown warning at %.1f C",
-                            actual,
-                        )    
+                                "tapoautoshutdown",
+                                {
+                                    "type": "bed_cooling_shutdown_warning",
+                                    "temperature": round(actual, 1),
+                                    "message": (
+                                        "The bed is at 32°C. "
+                                        "The printer's Tapo plug will switch off "
+                                        "automatically when the bed reaches 30°C."
+                                    ),
+                                },
+                            )
+                            self._logger.info(
+                                "Sent one-time Tapo shutdown warning at %.1f C",
+                                actual,
+                            )    
 
             except Exception as e:
                 self._logger.warning(
