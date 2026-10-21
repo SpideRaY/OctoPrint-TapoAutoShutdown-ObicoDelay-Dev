@@ -243,15 +243,8 @@ class TapoAutoShutdownPlugin(
             )
             return
 
-        # Read the configured target temperature
-        try:
-            temperature = float(
-                self._settings.get(["bed_preheat_temperature"])
-            )
-            if not 0 <= temperature <= 100:
-                raise ValueError("Temperature must be between 0 and 100")
-        except (TypeError, ValueError):
-            temperature = 60.0
+        # Use a fixed preheat target; this is intentionally not user-configurable.
+        temperature = 50.0
    
         # Remind the user to switch on the light bar before preheating.
         self._plugin_manager.send_plugin_message(
@@ -327,10 +320,8 @@ class TapoAutoShutdownPlugin(
                     if not self._bed_preheat_complete_notified:
                         self._bed_preheat_complete_notified = True
 
-                        # Only announce "Ready to print" at 60 C or above.
-                        # A lower test preset (for example, 30 C) must not
-                        # trigger the ready-to-print notification.
-                        if target_temperature >= 60.0 and actual >= 60.0:
+                        # The fixed 50 C preheat target is the ready threshold.
+                        if target_temperature >= 50.0 and actual >= 50.0:
                             self._plugin_manager.send_plugin_message(
                                 "tapoautoshutdown",
                                 {
@@ -346,7 +337,7 @@ class TapoAutoShutdownPlugin(
                             self._logger.info(
                                 "Bed reached preheat preset %.1f C; "
                                 "Ready to print notification suppressed "
-                                "because the target is below 60 C",
+                                "because the target is below 50 C",
                                 actual,
                             )
                     return
@@ -887,7 +878,6 @@ class TapoAutoShutdownPlugin(
             "password": "",
             "ip": "",
             "bed_preheat_enabled": False,
-            "bed_preheat_temperature": 60,
 
             # OctoPi Tapo P110
             "octopi_tapo_enabled": False,
