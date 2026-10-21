@@ -766,8 +766,8 @@ class TapoAutoShutdownPlugin(
                                 self._bed_32_notified = True
                                 should_notify_32 = True
 
-                    if should_notify_32:
-                        self._plugin_manager.send_plugin_message(
+                        if should_notify_32:
+                            self._plugin_manager.send_plugin_message(
                             "tapoautoshutdown",
                             {
                                 "type": "bed_cooling_shutdown_warning",
