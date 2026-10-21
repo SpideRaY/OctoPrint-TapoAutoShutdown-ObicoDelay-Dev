@@ -12,6 +12,16 @@ function TapoAutoShutdownViewModel(parameters) {
     var bedCoolingShutdownWarning = null;
     var bedCoolingShutdown = null;
 
+    // Clear the persistent green preheat box when OctoPrint reports that
+    // the printer has disconnected, for example after the Tapo plug is off.
+    // This only removes the notification; it does not control the printer.
+    self.onEventDisconnected = function (payload) {
+        if (bedPreheatNotification) {
+            bedPreheatNotification.remove();
+            bedPreheatNotification = null;
+        }
+    };
+
     // OctoPrint calls this when a plugin sends a message to the browser.
     // The Python backend must send matching data.type values for these cases
     // to run, and include the expected data fields (such as temperature/message).
@@ -22,8 +32,15 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         // PREHEAT STARTED: persistent green/success notification.
-        // It stays visible until the completion/failure event removes it.
+        // It stays visible until the completion/failure event removes it
+        // or OctoPrint reports that the printer has disconnected.
         if (data.type === "bed_preheat") {
+            // Remove an older box first so repeated requests don't stack them.
+            if (bedPreheatNotification) {
+                bedPreheatNotification.remove();
+                bedPreheatNotification = null;
+            }
+
             bedPreheatNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "Bed preheat requested. Target: " +
@@ -40,13 +57,11 @@ function TapoAutoShutdownViewModel(parameters) {
         // PREHEAT COMPLETE: remove the persistent start message, then show
         // a notice for 3 minutes (180,000 milliseconds).
         if (data.type === "bed_preheat_complete") {
-            // Close the original green preheat notification.
             if (bedPreheatNotification) {
                 bedPreheatNotification.remove();
                 bedPreheatNotification = null;
             }
 
-            // Show the temperature-reached notice for 3 minutes.
             bedPreheatCompleteNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "Warning: The bed has reached " +
@@ -64,13 +79,11 @@ function TapoAutoShutdownViewModel(parameters) {
         // PREHEAT FAILED/TIMED OUT: remove the start message and show a
         // warning for 3 minutes. The backend may provide a specific message.
         if (data.type === "bed_preheat_failed") {
-            // Close the original green preheat notification.
             if (bedPreheatNotification) {
                 bedPreheatNotification.remove();
                 bedPreheatNotification = null;
             }
 
-            // Show the failure warning for 3 minutes.
             bedPreheatCompleteNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: data.message ||
