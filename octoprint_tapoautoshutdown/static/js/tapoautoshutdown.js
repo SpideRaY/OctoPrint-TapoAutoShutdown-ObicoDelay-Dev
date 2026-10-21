@@ -32,7 +32,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         // LIGHT BAR REMINDER: shown before automatic bed preheating.
-        // Show warning for 30 seconds then hide gives the user time to turn it ON.     
+        // Show warning for 30 seconds to give the user time to turn it on.
         if (data.type === "light_bar_reminder") {
             new PNotify({
                 title: "Tapo Auto Shutdown - Light Bar Reminder",
@@ -48,12 +48,11 @@ function TapoAutoShutdownViewModel(parameters) {
                 }
             });
         }
-     
-        // PREHEAT STARTED: 1 minute green/success notification.
-        // It stays visible until the completion/failure event removes it
-        // or OctoPrint reports that the printer has disconnected.
+
+        // PREHEAT STARTED: green/success notification.
+        // The backend supplies the fixed 50°C target. This browser notice
+        // is not a phone push notification.
         if (data.type === "bed_preheat") {
-            // Remove an older box first so repeated requests don't stack them.
             if (bedPreheatNotification) {
                 bedPreheatNotification.remove();
                 bedPreheatNotification = null;
@@ -62,7 +61,7 @@ function TapoAutoShutdownViewModel(parameters) {
             bedPreheatNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "Bed preheat requested. Target: " +
-                    data.temperature + "°C.",
+                    (data.temperature != null ? data.temperature : 50) + "°C.",
                 type: "success",
                 hide: true,
                 delay: 60000,
@@ -73,8 +72,8 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
-        // PREHEAT COMPLETE: remove the persistent start message, then show
-        // a notice for 1 minute (30,000 milliseconds).
+        // PREHEAT COMPLETE: remove the start message, then show a notice
+        // for 30 seconds.
         if (data.type === "bed_preheat_complete") {
             if (bedPreheatNotification) {
                 bedPreheatNotification.remove();
@@ -83,8 +82,9 @@ function TapoAutoShutdownViewModel(parameters) {
 
             bedPreheatCompleteNotification = new PNotify({
                 title: "Tapo Auto Shutdown",
-                text: "Warning: The bed has reached " +
-                    data.temperature + "°C. Ready to print!",
+                text: "The bed has reached " +
+                    (data.temperature != null ? data.temperature : 50) +
+                    "°C. Ready to print!",
                 type: "notice",
                 hide: true,
                 delay: 30000,
@@ -96,7 +96,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         // PREHEAT FAILED/TIMED OUT: remove the start message and show a
-        // warning for 1 minute (30,000 milliseconds). The backend may provide a specific message.
+        // warning for 30 seconds. The backend may supply a specific message.
         if (data.type === "bed_preheat_failed") {
             if (bedPreheatNotification) {
                 bedPreheatNotification.remove();
@@ -117,8 +117,7 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
-        // BED COOLING REMINDER: persistent notice when the backend reports
-        // the reminder temperature (intended to prompt print removal).
+        // BED COOLING REMINDER: persistent notice at the reminder temperature.
         if (data.type === "bed_cooling_reminder") {
             bedCoolingReminder = new PNotify({
                 title: "Tapo Auto Shutdown",
@@ -133,8 +132,7 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
-        // SHUTDOWN WARNING: persistent error-style message before the plug
-        // is switched off. The backend supplies the warning text.
+        // SHUTDOWN WARNING: persistent warning before the plug is switched off.
         if (data.type === "bed_cooling_shutdown_warning") {
             bedCoolingShutdownWarning = new PNotify({
                 title: "Tapo Auto Shutdown",
@@ -148,9 +146,7 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
-        // SHUTDOWN COMPLETE: remove the earlier cooling messages and show
-        // a persistent confirmation. The backend reports the temperature
-        // and should send this event only after switching off the printer plug.
+        // SHUTDOWN COMPLETE: remove earlier cooling messages and confirm shutdown.
         if (data.type === "bed_cooling_shutdown") {
             if (bedCoolingReminder) {
                 bedCoolingReminder.remove();
@@ -162,7 +158,6 @@ function TapoAutoShutdownViewModel(parameters) {
                 bedCoolingShutdownWarning = null;
             }
 
-            // This success notification intentionally stays visible.
             bedCoolingShutdown = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "The bed has cooled to " +
