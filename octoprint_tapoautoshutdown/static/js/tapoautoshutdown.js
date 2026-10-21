@@ -170,7 +170,7 @@ function TapoAutoShutdownViewModel(parameters) {
                     "°C. The printer has been switched off.",
                 type: "success",
                 hide: true,
-                delay: 180000;
+                delay: 180000,
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
