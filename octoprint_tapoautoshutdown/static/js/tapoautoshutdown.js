@@ -86,7 +86,7 @@ function TapoAutoShutdownViewModel(parameters) {
                     data.temperature + "°C. Ready to print!",
                 type: "notice",
                 hide: true,
-                delay: 15000,
+                delay: 30000,
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
