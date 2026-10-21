@@ -132,8 +132,13 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
 
-        // SHUTDOWN WARNING: persistent warning before the plug is switched off.
+        // SHUTDOWN WARNING: remove earlier cooling messages before the plug is switched off.
         if (data.type === "bed_cooling_shutdown_warning") {
+            if (bedCoolingReminder) {
+                bedCoolingReminder.remove();
+                bedCoolingReminder = null;
+            }
+        
             bedCoolingShutdownWarning = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: data.message,
@@ -164,7 +169,8 @@ function TapoAutoShutdownViewModel(parameters) {
                     data.temperature +
                     "°C. The printer has been switched off.",
                 type: "success",
-                hide: false,
+                hide: true,
+                delay: 180000;
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
