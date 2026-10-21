@@ -48,7 +48,7 @@ function TapoAutoShutdownViewModel(parameters) {
             });
         }
      
-        // PREHEAT STARTED: persistent green/success notification.
+        // PREHEAT STARTED: 1 minute green/success notification.
         // It stays visible until the completion/failure event removes it
         // or OctoPrint reports that the printer has disconnected.
         if (data.type === "bed_preheat") {
@@ -64,7 +64,7 @@ function TapoAutoShutdownViewModel(parameters) {
                     data.temperature + "°C.",
                 type: "success",
                 hide: true,
-                delay: 15000,
+                delay: 60000,
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
@@ -73,7 +73,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         // PREHEAT COMPLETE: remove the persistent start message, then show
-        // a notice for 3 minutes (180,000 milliseconds).
+        // a notice for 1 minute (30,000 milliseconds).
         if (data.type === "bed_preheat_complete") {
             if (bedPreheatNotification) {
                 bedPreheatNotification.remove();
@@ -95,7 +95,7 @@ function TapoAutoShutdownViewModel(parameters) {
         }
 
         // PREHEAT FAILED/TIMED OUT: remove the start message and show a
-        // warning for 3 minutes. The backend may provide a specific message.
+        // warning for 1 minute (30,000 milliseconds). The backend may provide a specific message.
         if (data.type === "bed_preheat_failed") {
             if (bedPreheatNotification) {
                 bedPreheatNotification.remove();
@@ -108,7 +108,7 @@ function TapoAutoShutdownViewModel(parameters) {
                     "Warning: Bed preheating timed out. Check the printer before printing.",
                 type: "warning",
                 hide: true,
-                delay: 180000,
+                delay: 30000,
                 modules: {
                     Animate: { animate: false },
                     Mobile: { swipeDismiss: false }
