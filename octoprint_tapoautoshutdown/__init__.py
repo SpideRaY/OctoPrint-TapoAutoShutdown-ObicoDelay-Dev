@@ -252,6 +252,12 @@ class TapoAutoShutdownPlugin(
                 raise ValueError("Temperature must be between 0 and 100")
         except (TypeError, ValueError):
             temperature = 60.0
+   
+        # Remind the user to switch on the light bar before preheating.
+        self._plugin_manager.send_plugin_message(
+            "tapoautoshutdown",
+            {"type": "light_bar_reminder"},
+        )
 
         # Ask the printer firmware to heat the bed
         try:
