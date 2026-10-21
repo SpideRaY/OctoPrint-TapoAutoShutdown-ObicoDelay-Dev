@@ -36,6 +36,11 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 **v0.3.2 — Adding optional preheat bed checkbox and send push notification when it's safe to remove print (CURRENTLY BEING TESTED FOR RELEASE)**
 
 * Checking the Printer bed temp and Tapo power plug wattage then turn off the plug
+* Added warning box to remind to turn on the cabinet light.
+* Added warning box to show that the bed is preheating
+* Added warning box to show that the bed has reached the desired preset temperature.
+* Added warning boxes to tell the user to try to remove a print at 40°C+ a final reminder at 32°C
+* Added warning box to show that the printer has turned off at 30 °C
 
 **Upgrading to the latest version**
 
