@@ -757,14 +757,14 @@ class TapoAutoShutdownPlugin(
                             )
 
                     if actual <= 32.0:
-                    should_notify_32 = False
-                    with self._bed_cooling_monitor_lock:
-                        if (
-                            generation == self._bed_cooling_monitor_generation
-                            and not self._bed_32_notified
-                        ):
-                            self._bed_32_notified = True
-                            should_notify_32 = True
+                        should_notify_32 = False
+                        with self._bed_cooling_monitor_lock:
+                            if (
+                                generation == self._bed_cooling_monitor_generation
+                                and not self._bed_32_notified
+                            ):
+                                self._bed_32_notified = True
+                                should_notify_32 = True
 
                     if should_notify_32:
                         self._plugin_manager.send_plugin_message(
