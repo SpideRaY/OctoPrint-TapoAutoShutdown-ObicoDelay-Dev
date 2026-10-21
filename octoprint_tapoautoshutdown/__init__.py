@@ -320,17 +320,29 @@ class TapoAutoShutdownPlugin(
                 if actual >= target_temperature:
                     if not self._bed_preheat_complete_notified:
                         self._bed_preheat_complete_notified = True
-                        self._plugin_manager.send_plugin_message(
-                            "tapoautoshutdown",
-                            {
-                                "type": "bed_preheat_complete",
-                                "temperature": round(actual, 1),
-                            },
-                        )
-                        self._logger.info(
-                            "Bed reached preheat target: %.1f C",
-                            actual,
-                        )
+
+                        # Only announce "Ready to print" at 60 C or above.
+                        # A lower test preset (for example, 30 C) must not
+                        # trigger the ready-to-print notification.
+                        if target_temperature >= 60.0 and actual >= 60.0:
+                            self._plugin_manager.send_plugin_message(
+                                "tapoautoshutdown",
+                                {
+                                    "type": "bed_preheat_complete",
+                                    "temperature": round(actual, 1),
+                                },
+                            )
+                            self._logger.info(
+                                "Bed reached print-ready temperature: %.1f C",
+                                actual,
+                            )
+                        else:
+                            self._logger.info(
+                                "Bed reached preheat preset %.1f C; "
+                                "Ready to print notification suppressed "
+                                "because the target is below 60 C",
+                                actual,
+                            )
                     return
 
             except Exception as e:
