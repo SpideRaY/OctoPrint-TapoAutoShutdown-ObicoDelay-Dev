@@ -72,7 +72,7 @@ function TapoAutoShutdownViewModel(parameters) {
             bedCoolingReminder = new PNotify({
                 title: "Tapo Auto Shutdown",
                 text: "The bed is at " + data.temperature +
-                    "°C — try removing your print. " +
+                    "°C — try removing your print. ",  
                 type: "notice",
                 hide: false,
                 modules: {
