@@ -243,7 +243,7 @@ class TapoAutoShutdownPlugin(
             # Start bed-temperature monitoring for printer shutdown.
             username = self._settings.get(["username"])
             password = self._settings.get(["password"])
-            ip = self._settings.get(["ip"])
+            ip = (self._settings.get(["ip"]) or "").strip()
 
             if username and password and ip:
                 self._logger.info(
@@ -299,7 +299,7 @@ class TapoAutoShutdownPlugin(
         try:
             username = self._settings.get(["username"])
             password = self._settings.get(["password"])
-            ip = self._settings.get(["ip"])
+            ip = (self._settings.get(["ip"]) or "").strip()
 
             client = ApiClient(username, password)
             plug = asyncio.run(client.p110(ip))
@@ -618,7 +618,7 @@ class TapoAutoShutdownPlugin(
     async def _arm_octopi_tapo_timer(self):
         username = self._settings.get(["username"])
         password = self._settings.get(["password"])
-        ip = self._settings.get(["octopi_tapo_ip"])
+        ip = (self._settings.get(["octopi_tapo_ip"]) or "").strip()
 
         if not username or not password or not ip:
             self._logger.error(
@@ -704,7 +704,7 @@ class TapoAutoShutdownPlugin(
     async def _read_ender_power(self):
         username = self._settings.get(["username"])
         password = self._settings.get(["password"])
-        ip = self._settings.get(["ip"])
+        ip = (self._settings.get(["ip"]) or "").strip()
 
         if not username or not password or not ip:
             self._logger.warning(
@@ -883,7 +883,7 @@ class TapoAutoShutdownPlugin(
         """Switch off the Ender plug directly; do not arm a fixed timer."""
         username = self._settings.get(["username"])
         password = self._settings.get(["password"])
-        ip = self._settings.get(["ip"])
+        ip = (self._settings.get(["ip"]) or "").strip()
 
         if not username or not password or not ip:
             self._logger.error(
@@ -920,7 +920,7 @@ class TapoAutoShutdownPlugin(
     async def _clear_octopi_tapo_timer(self):
         username = self._settings.get(["username"])
         password = self._settings.get(["password"])
-        ip = self._settings.get(["octopi_tapo_ip"])
+        ip = (self._settings.get(["octopi_tapo_ip"]) or "").strip()
 
         try:
             client = ApiClient(username, password)
