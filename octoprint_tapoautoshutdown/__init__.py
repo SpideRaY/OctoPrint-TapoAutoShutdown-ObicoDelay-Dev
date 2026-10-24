@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -40,6 +41,53 @@ class TapoAutoShutdownPlugin(
         self._bed_cooling_monitor_generation = 0      
         self._bed_40_notified = False
         self._bed_32_notified = False
+
+    def _clear_ntfy_notification_history(self):
+        """Delete existing notifications from the configured ntfy topic."""
+        topic = (self._settings.get(["ntfy_topic"]) or "").strip()
+        if not topic or "/" in topic or any(ch.isspace() for ch in topic):
+            self._logger.warning("ntfy history cleanup skipped: invalid topic")
+            return
+
+        url = f"https://ntfy.sh/{topic}/json?poll=1&since=all"
+        try:
+            request = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(request, timeout=10) as response:
+                lines = response.read().decode("utf-8").splitlines()
+
+            sequence_ids = set()
+            for line in lines:
+                if not line.strip():
+                    continue
+                try:
+                    item = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if item.get("event") != "message":
+                    continue
+                # ntfy uses sequence_id for linked messages; for ordinary
+                # messages, the returned message id can be used as the ID.
+                sequence_id = item.get("sequence_id") or item.get("id")
+                if sequence_id:
+                    sequence_ids.add(str(sequence_id))
+
+            deleted = 0
+            for sequence_id in sequence_ids:
+                delete_request = urllib.request.Request(
+                    f"https://ntfy.sh/{topic}/{sequence_id}",
+                    method="DELETE",
+                )
+                with urllib.request.urlopen(delete_request, timeout=5) as response:
+                    if 200 <= response.status < 300:
+                        deleted += 1
+
+            self._logger.info(
+                "ntfy history cleanup finished: deleted %d of %d notifications",
+                deleted,
+                len(sequence_ids),
+            )
+        except Exception as e:
+            self._logger.warning("ntfy history cleanup failed: %s", e)
 
     def _send_ntfy_notification(self, message):
         """Send a push notification without disrupting printer control."""
@@ -215,13 +263,11 @@ class TapoAutoShutdownPlugin(
             self._timelapse_failed = False
             self._ender_plug_off = False
             self._octopi_shutdown_started = False
-
             threading.Thread(
                 target=self._clear_ntfy_notification_history,
                 name="TapoAutoShutdown-ntfy-cleanup",
                 daemon=True,
             ).start()
-            
             with self._bed_cooling_monitor_lock:
                 self._bed_cooling_monitor_generation += 1
                 self._bed_40_notified = False
