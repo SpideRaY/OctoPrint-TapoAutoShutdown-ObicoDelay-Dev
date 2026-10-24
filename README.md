@@ -33,7 +33,7 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 * Automatic connection to OctoPi when PSU is turned on.
 * Existing shutdown timers, power-off actions, and timelapse handling are intended to remain unchanged.
 
-**v0.3.2 — Adding optional preheat bed checkbox and send push notification when it's safe to remove print (CURRENTLY BEING TESTED FOR RELEASE)**
+**v0.3.2 — Added optional preheat bed checkbox and send push notification when it's safe to remove print **
 
 * Checking the Printer bed temp and Tapo power plug wattage then turn off the plug
 * Added warning box to remind to turn on the cabinet light.
@@ -42,8 +42,9 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 * Added warning boxes to tell the user to try to remove a print at 40°C+ a final reminder at 32°C
 * Added warning box to show that the printer has turned off at 30°C
 
-* v0.3.2 — Adding ntfy alerts to push when the bed has reached 40°C+ a final reminder at 32°C**
-* Requires the FREE app ntfy and a new subscribed topic unique to the user
+**v0.3.2.1 — Added NTFY alerts to push when the bed has reached 40°C and final reminder that the printer has turned off at 30°C**
+
+* Requires the FREE app ntfy and a new subscribed topic unique to the user for example ender-alerts-push-topic
 * It will notify when it's worth trying to remove the finished print
 * It will notify when the printer has turned OFF when the bed reaches 30°C
 
