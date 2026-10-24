@@ -412,7 +412,7 @@ class TapoAutoShutdownPlugin(
                             )
 
                             self._send_ntfy_notification(
-                                f"✅ Ender 3 Pro - Bed preheated to {actual:.1f}°C."
+                                f"✅ Ender 3 Pro - Bed preheated to {actual:.1f}°C. Ready to print!"
                             )
                             self._logger.info(
                                 "Bed reached print-ready temperature: %.1f C",
