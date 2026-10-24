@@ -1,4 +1,7 @@
 import asyncio
+import logging
+from logging.handlers import RotatingFileHandler
+import os
 import threading
 import time
 import urllib.error
@@ -55,8 +58,47 @@ class TapoAutoShutdownPlugin(
         except Exception as e:
             self._logger.warning("Could not send ntfy notification: %s", e)
 
+    def _init_dedicated_logger(self):
+        """Write plugin-only diagnostics to OctoPrint's Logs directory."""
+        try:
+            logs_dir = octoprint.settings.settings().getBaseFolder("logs")
+            os.makedirs(logs_dir, exist_ok=True)
+            log_path = os.path.join(logs_dir, "plugin_tapoautoshutdown.log")
+
+            self._tapo_file_logger = logging.getLogger(
+                "octoprint.plugins.tapoautoshutdown.file"
+            )
+            self._tapo_file_logger.setLevel(logging.DEBUG)
+            self._tapo_file_logger.propagate = False
+
+            # Avoid adding duplicate handlers if the plugin is reloaded.
+            for handler in self._tapo_file_logger.handlers:
+                if isinstance(handler, RotatingFileHandler) and handler.baseFilename == os.path.abspath(log_path):
+                    return
+
+            handler = RotatingFileHandler(
+                log_path, maxBytes=2 * 1024 * 1024, backupCount=3, encoding="utf-8"
+            )
+            handler.setLevel(logging.DEBUG)
+            handler.setFormatter(logging.Formatter(
+                "%(asctime)s - %(levelname)s - %(message)s"
+            ))
+            self._tapo_file_logger.addHandler(handler)
+            self._tapo_file_logger.info("Dedicated Tapo Auto Shutdown log initialised")
+        except Exception:
+            # Logging setup must never prevent OctoPrint or the plugin starting.
+            self._logger.exception("Could not initialise dedicated Tapo Auto Shutdown log")
+
+    def _diag(self, level, message, *args, **kwargs):
+        """Send diagnostics to both the normal OctoPrint log and plugin-only log."""
+        logger = getattr(self, "_tapo_file_logger", None)
+        if logger is not None:
+            getattr(logger, level)(message, *args, **kwargs)
+
     def on_after_startup(self):
+        self._init_dedicated_logger()
         self._logger.info("Tapo Auto Shutdown started")
+        self._diag("info", "Tapo Auto Shutdown started")
 
         def check_for_obico():
             time.sleep(5)
@@ -576,10 +618,14 @@ class TapoAutoShutdownPlugin(
             
         client = None
         plug = None
+        self._diag("info", "OctoPi timer: starting setup for configured IP %s", ip)
 
         try:
+            self._diag("debug", "OctoPi timer: creating Tapo API client")
             client = ApiClient(username, password)
+            self._diag("debug", "OctoPi timer: requesting P110 device object")
             plug = await client.p110(ip)
+            self._diag("debug", "OctoPi timer: P110 device object obtained")
 
             # Allow the configured time for Linux to shut down cleanly
             try:
@@ -592,10 +638,14 @@ class TapoAutoShutdownPlugin(
                 delay_minutes = 15
 
             delay_seconds = delay_minutes * 60
+            self._diag("info", "OctoPi timer: setting power-off timer for %s minutes", delay_minutes)
             await plug.set_timer(delay_seconds, PowerState.Off)
+            self._diag("debug", "OctoPi timer: set_timer call completed")
 
             # Verify the timer was accepted
+            self._diag("debug", "OctoPi timer: reading timer back for verification")
             timer = await plug.get_timer()
+            self._diag("debug", "OctoPi timer: verification response received (response_present=%s)", timer is not None)
 
             if (
                 timer is None
@@ -606,6 +656,7 @@ class TapoAutoShutdownPlugin(
                 self._logger.error(
                     "OctoPi shutdown cancelled: Tapo timer verification failed"
                 )
+                self._diag("error", "OctoPi timer verification failed: response=%r", timer)
                 try:
                     await plug.clear_timer()
                 except Exception as clear_error:
@@ -619,6 +670,7 @@ class TapoAutoShutdownPlugin(
                 "%s seconds",
                 timer.remaining_s,
             )
+            self._diag("info", "OctoPi timer verified: power off in approximately %s seconds", timer.remaining_s)
             return True
 
         except Exception as e:
@@ -626,6 +678,7 @@ class TapoAutoShutdownPlugin(
                 "Failed to arm or verify OctoPi Tapo shutdown timer: %s",
                 e,
             )
+            self._diag("exception", "OctoPi timer failed during setup/verification: %s", e)
             if plug is not None:
                 try:
                     await plug.clear_timer()
@@ -634,6 +687,7 @@ class TapoAutoShutdownPlugin(
                         "Could not clear Tapo timer after error: %s",
                         clear_error,
                     )
+                    self._diag("exception", "Could not clear Tapo timer after error: %s", clear_error)
             return False
 
     # Read current power from the Ender Tapo P110 (read-only)
