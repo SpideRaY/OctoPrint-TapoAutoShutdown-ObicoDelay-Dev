@@ -44,7 +44,7 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 
 **v0.3.2.1 — Added ntfy push notifications (this is for Alex)**
 
-* Requires the free ntfy iOS app and a unique subscribed topic for the user, more info available @ https://github.com/binwiederhier/ntfy
+* Requires the free ntfy iOS/Android app and a unique subscribed topic for the user, download available @ https://ntfy.sh/
 * Sends a notification when the bed preheating command is issued, including the target temperature.
 * Sends a notification when the bed cools to 40°C, reminding the user that the print may be ready to remove.
 * Sends a final notification when the printer’s Tapo plug is switched off after the bed cools to 30°C.
