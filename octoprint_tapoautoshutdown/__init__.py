@@ -256,10 +256,7 @@ class TapoAutoShutdownPlugin(
                 )
 
             # Check whether OctoPi shutdown should proceed
-            if (
-                self._settings.get(["octopi_shutdown_enabled"])
-                and self._settings.get(["octopi_tapo_enabled"])
-            ):
+            if self._settings.get(["octopi_shutdown_enabled"]):
                 self._logger.info(
                     "Print completed - waiting for timelapse rendering"
                 )
@@ -472,10 +469,7 @@ class TapoAutoShutdownPlugin(
             )
             return
 
-        if not (
-            self._settings.get(["octopi_shutdown_enabled"])
-            and self._settings.get(["octopi_tapo_enabled"])
-        ):
+        if not self._settings.get(["octopi_shutdown_enabled"]):
             return
 
         self._octopi_shutdown_started = True
