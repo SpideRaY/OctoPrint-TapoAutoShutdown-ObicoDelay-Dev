@@ -1,3 +1,26 @@
+<div class="row-fluid">
+    <div class="span6">
+        <div class="control-group">
+            <label class="control-label">Tapo account username</label>
+            <div class="controls">
+                <input type="text"
+                    class="input-medium"
+                    data-bind="value: settings.plugins.tapoautoshutdown.username">
+            </div>
+        </div>
+    </div>
+    <div class="span6">
+        <div class="control-group">
+            <label class="control-label">Tapo account password</label>
+            <div class="controls">
+                <input type="password"
+                    class="input-medium"
+                    data-bind="value: settings.plugins.tapoautoshutdown.password">
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="control-group">
     <label class="control-label">OctoPi Tapo P110 IP address</label>
     <div class="controls">
@@ -22,29 +45,6 @@
     </div>
 </div>
 
-
-<div class="row-fluid">
-    <div class="span6">
-        <div class="control-group">
-            <label class="control-label">Tapo account username</label>
-            <div class="controls">
-                <input type="text"
-                    class="input-medium"
-                    data-bind="value: settings.plugins.tapoautoshutdown.username">
-            </div>
-        </div>
-    </div>
-    <div class="span6">
-        <div class="control-group">
-            <label class="control-label">Tapo account password</label>
-            <div class="controls">
-                <input type="password"
-                    class="input-medium"
-                    data-bind="value: settings.plugins.tapoautoshutdown.password">
-            </div>
-        </div>
-    </div>
-</div>
 <div class="control-group">
     <label class="control-label">Automatic bed preheat</label>
     <div class="controls">
@@ -59,6 +59,8 @@
         </p>
     </div>
 </div>
+
+
 
 <div class="control-group">
     <label class="control-label">OctoPi automatic shutdown</label>
