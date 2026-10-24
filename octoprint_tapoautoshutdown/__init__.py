@@ -241,7 +241,7 @@ class TapoAutoShutdownPlugin(
             self._disable_obico_monitoring()
 
             # Start bed-temperature monitoring for printer shutdown.
-            username = self._settings.get(["username"])
+            username = (self._settings.get(["username"]) or "").strip()
             password = self._settings.get(["password"])
             ip = (self._settings.get(["ip"]) or "").strip()
 
@@ -297,7 +297,7 @@ class TapoAutoShutdownPlugin(
 
         # Check the actual Ender Tapo on/off state
         try:
-            username = self._settings.get(["username"])
+            username = (self._settings.get(["username"]) or "").strip()
             password = self._settings.get(["password"])
             ip = (self._settings.get(["ip"]) or "").strip()
 
@@ -616,7 +616,7 @@ class TapoAutoShutdownPlugin(
 
     # Arm the OctoPi Tapo P110 shutdown timer
     async def _arm_octopi_tapo_timer(self):
-        username = self._settings.get(["username"])
+        username = (self._settings.get(["username"]) or "").strip()
         password = self._settings.get(["password"])
         ip = (self._settings.get(["octopi_tapo_ip"]) or "").strip()
 
@@ -702,7 +702,7 @@ class TapoAutoShutdownPlugin(
 
     # Read current power from the Ender Tapo P110 (read-only)
     async def _read_ender_power(self):
-        username = self._settings.get(["username"])
+        username = (self._settings.get(["username"]) or "").strip()
         password = self._settings.get(["password"])
         ip = (self._settings.get(["ip"]) or "").strip()
 
@@ -881,7 +881,7 @@ class TapoAutoShutdownPlugin(
 
     async def _switch_off_ender_tapo(self):
         """Switch off the Ender plug directly; do not arm a fixed timer."""
-        username = self._settings.get(["username"])
+        username = (self._settings.get(["username"]) or "").strip()
         password = self._settings.get(["password"])
         ip = (self._settings.get(["ip"]) or "").strip()
 
@@ -918,7 +918,7 @@ class TapoAutoShutdownPlugin(
     
     # Clear the OctoPi plug timer if shutdown fails
     async def _clear_octopi_tapo_timer(self):
-        username = self._settings.get(["username"])
+        username = (self._settings.get(["username"]) or "").strip()
         password = self._settings.get(["password"])
         ip = (self._settings.get(["octopi_tapo_ip"]) or "").strip()
 
@@ -991,7 +991,11 @@ class TapoAutoShutdownPlugin(
                 self._settings.set([octet_key], "100")
 
     def on_settings_save(self, data):
-        """Validate octets and keep legacy full-IP settings in sync."""
+        """Trim text settings, validate octets, and sync legacy full IPs."""
+        # Prevent accidental leading/trailing spaces in Tapo login and ntfy topic.
+        data["username"] = str(data.get("username", "") or "").strip()
+        data["ntfy_topic"] = str(data.get("ntfy_topic", "") or "").strip()
+
         for ip_key, octet_key in (
             ("ip", "ip_last_octet"),
             ("octopi_tapo_ip", "octopi_tapo_ip_last_octet"),
