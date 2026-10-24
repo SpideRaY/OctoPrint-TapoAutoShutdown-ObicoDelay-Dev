@@ -984,6 +984,11 @@ class TapoAutoShutdownPlugin(
                 tail = full_ip[len(prefix):].strip()
                 if tail.isdigit() and 1 <= int(tail) <= 254:
                     self._settings.set([octet_key], str(int(tail)))
+                    continue
+
+            # New installation: start at 100 only when no saved address exists.
+            if not full_ip:
+                self._settings.set([octet_key], "100")
 
     def on_settings_save(self, data):
         """Validate octets and keep legacy full-IP settings in sync."""
