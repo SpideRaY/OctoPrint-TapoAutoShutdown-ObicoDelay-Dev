@@ -1,18 +1,4 @@
 <div class="control-group">
-    <label class="control-label">ntfy notification topic</label>
-    <div class="controls">
-        <input type="text"
-            class="input-xlarge"
-            autocomplete="off"
-            data-bind="value: settings.plugins.tapoautoshutdown.ntfy_topic">
-        <p class="help-block">
-            Topic used for phone push notifications at ntfy.sh. Use a hard-to-guess
-            topic name and keep it private. Leave empty to disable ntfy notifications.
-        </p>
-    </div>
-</div>
-
-<div class="control-group">
     <label class="control-label">OctoPi Tapo P110 IP address</label>
     <div class="controls">
         <input type="text"
@@ -64,22 +50,7 @@
 </div>
 
 <div class="control-group">
-    <label class="control-label">OctoPi Tapo P110</label>
-    <div class="controls">
-        <label class="checkbox">
-            <input type="checkbox"
-                data-bind="checked: settings.plugins.tapoautoshutdown.octopi_tapo_enabled">
-            Enable OctoPi Tapo
-        </label>
-        <p class="help-block">
-            Enable control of a second Tapo that powers the Raspberry Pi running OctoPrint.
-            Leave unchecked if you only have the 3D printer Tapo connected.
-        </p>
-    </div>
-</div>
-
-<div class="control-group">
-    <label class="control-label">Shut down OctoPi</label>
+    <label class="control-label">OctoPi automatic shutdown</label>
     <div class="controls">
         <label class="checkbox">
             <input type="checkbox"
@@ -87,8 +58,7 @@
             Enable automatic OctoPi shutdown
         </label>
         <p class="help-block">
-            Enable automatic shutdown of the Raspberry Pi after a successful print and completed timelapse rendering.
-            The configured Tapo smart plug will switch off after the specified delay.
+            When enabled, the configured OctoPi Tapo P110 will switch off after a successful print and completed timelapse rendering, allowing time for Linux to shut down cleanly.
         </p>
     </div>
 </div>
