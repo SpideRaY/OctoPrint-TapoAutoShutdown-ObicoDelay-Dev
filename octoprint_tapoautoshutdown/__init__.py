@@ -36,7 +36,9 @@ class TapoAutoShutdownPlugin(
         self._bed_preheat_handled = False
         self._bed_preheat_complete_notified = False
         self._bed_cooling_monitor_lock = threading.Lock()
-        self._bed_cooling_monitor_generation = 0      
+        self._bed_cooling_monitor_generation = 0
+        # Set only after the Ender Tapo plug has been successfully switched off.
+        self._ender_plug_off_event = threading.Event()
         self._bed_40_notified = False
         self._bed_32_notified = False
 
@@ -213,6 +215,7 @@ class TapoAutoShutdownPlugin(
             self._timelapse_done = False
             self._timelapse_failed = False
             self._octopi_shutdown_started = False
+            self._ender_plug_off_event.clear()
             with self._bed_cooling_monitor_lock:
                 self._bed_cooling_monitor_generation += 1
                 self._bed_40_notified = False
@@ -798,13 +801,18 @@ class TapoAutoShutdownPlugin(
                             self._logger.info(
                                 "Ender Tapo plug switched off after bed cooled to 30 C or below"
                             )
+                            self._ender_plug_off_event.set()
                             self._plugin_manager.send_plugin_message(
                                 "tapoautoshutdown",
                                 {
                                     "type": "bed_cooling_shutdown",
                                     "temperature": round(actual, 1),
                                 },
-                            )                   
+                            )
+                            self._logger.info(
+                                "Bed-cooling monitor finished after confirmed Ender plug shutdown"
+                            )
+                            return
                         else:
                             self._logger.error(
                                 "Could not switch off Ender Tapo plug; monitor will retry"
@@ -905,16 +913,51 @@ class TapoAutoShutdownPlugin(
 
     # Run the OctoPi shutdown sequence in the background
     def _octopi_shutdown_sequence(self):
-        timer_armed = asyncio.run(
-            self._arm_octopi_tapo_timer()
-        )
-
-        if timer_armed:
-            self._shutdown_octopi()
-        else:
+        # Start the hardware countdown as soon as timelapse rendering has finished.
+        timer_armed = asyncio.run(self._arm_octopi_tapo_timer())
+        if not timer_armed:
             self._logger.error(
                 "OctoPi shutdown cancelled because the Tapo timer could not be armed"
             )
+            return
+
+        # The Tapo countdown cuts power independently of OctoPrint. While the
+        # Ender is still cooling, refresh the countdown well before it expires.
+        # Once the Ender plug is confirmed off, stop refreshing and shut down
+        # OctoPrint cleanly; the last hardware timer then provides the final cutoff.
+        refresh_interval = 5 * 60
+        while not self._ender_plug_off_event.wait(timeout=refresh_interval):
+            self._logger.warning(
+                "Ender plug is not yet confirmed off; refreshing OctoPi Tapo timer "
+                "to avoid cutting power while bed-cooling monitor is active"
+            )
+            timer_armed = asyncio.run(self._arm_octopi_tapo_timer())
+            if not timer_armed:
+                # Keep trying before the existing hardware timer can expire.
+                self._logger.error(
+                    "Could not refresh OctoPi Tapo timer while waiting for Ender plug; "
+                    "will retry in 30 seconds"
+                )
+                while not self._ender_plug_off_event.wait(timeout=30):
+                    timer_armed = asyncio.run(self._arm_octopi_tapo_timer())
+                    if timer_armed:
+                        break
+
+        # If a refresh failed just as the Ender switched off, ensure a valid
+        # hardware timer is still armed before requesting the clean shutdown.
+        if not timer_armed:
+            timer_armed = asyncio.run(self._arm_octopi_tapo_timer())
+        if not timer_armed:
+            self._logger.error(
+                "Ender plug is off, but OctoPi shutdown cancelled because no "
+                "verified hardware power-off timer is available"
+            )
+            return
+
+        self._logger.info(
+            "Ender plug-off confirmed; requesting clean OctoPi shutdown"
+        )
+        self._shutdown_octopi()
     
     # Clear the OctoPi plug timer if shutdown fails
     async def _clear_octopi_tapo_timer(self):
