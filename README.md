@@ -42,11 +42,14 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 * Added warning boxes to tell the user to try to remove a print at 40°C+ a final reminder at 32°C
 * Added warning box to show that the printer has turned off at 30°C
 
-**v0.3.2.1 — Added NTFY alerts to push when the bed has reached 40°C and final reminder that the printer has turned off at 30°C**
+**v0.3.2.1 — Added ntfy push notifications**
 
-* Requires the FREE app ntfy and a new subscribed topic unique to the user for example ender-alerts-push-topic
-* It will notify when it's worth trying to remove the finished print
-* It will notify when the printer has turned OFF when the bed reaches 30°C
+* Requires the free ntfy app and a unique subscribed topic for the user.
+* Sends a notification when the bed preheating command is issued, including the target temperature.
+* Sends a notification when the bed cools to 40°C, reminding the user that the print may be ready to remove.
+* Sends a final notification when the printer’s Tapo plug is switched off after the bed cools to 30°C.
+* Notification delivery requires the Raspberry Pi to have network access.
+* Notification failures should not interrupt printer control or the shutdown sequence.
 
 **Upgrading to the latest version**
 
@@ -167,7 +170,7 @@ https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay
 
 For the v0.3.2 development branch, the ZIP URL is:
 
-https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay/archive/refs/heads/v0.3.2.zip
+https://github.com/SpideRaY/OctoPrint-TapoAutoShutdown-ObicoDelay/archive/refs/heads/v0.3.2.1.zip
 
 ## Initial configuration and testing
 
