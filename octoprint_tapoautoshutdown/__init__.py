@@ -57,6 +57,16 @@ class TapoAutoShutdownPlugin(
 
     def on_after_startup(self):
         self._logger.info("Tapo Auto Shutdown started")
+ 
+        # Start silent Raspberry Pi SoC temperature logging (recovered v0.3.3).
+        # This logs readings only; it does not show UI alerts or initiate shutdown.
+        if not getattr(self, "_soc_temperature_thread_started", False):
+            self._soc_temperature_thread_started = True
+            threading.Thread(
+                target=self._monitor_soc_temperature,
+                daemon=True,
+                name="tapo-soc-temperature-monitor",
+            ).start()
 
         def check_for_obico():
             time.sleep(5)
@@ -89,6 +99,31 @@ class TapoAutoShutdownPlugin(
             target=self._monitor_ender_power_for_connection,
             daemon=True,
         ).start()
+
+    def _monitor_soc_temperature(self):
+        """Log Raspberry Pi SoC temperature every 30 seconds."""
+        sensor_path = "/sys/class/thermal/thermal_zone0/temp"
+
+        while True:
+            try:
+                with open(sensor_path, "r", encoding="ascii") as sensor:
+                    raw_temperature = sensor.read().strip()
+
+                # Linux reports this value in thousandths of a degree C.
+                temperature_c = int(raw_temperature) / 1000.0
+                self._logger.info("SoC temperature: %.1fÂ°C", temperature_c)
+            except (OSError, ValueError) as exc:
+                self._logger.warning(
+                    "Could not read SoC temperature from %s: %s",
+                    sensor_path,
+                    exc,
+                )
+            except Exception:
+                self._logger.exception(
+                    "Unexpected error while reading SoC temperature"
+                )
+
+            time.sleep(30)
 
     def _monitor_ender_power_for_connection(self):
         """Monitor printer power and request one automatic connection."""
@@ -263,23 +298,23 @@ class TapoAutoShutdownPlugin(
             )
             return
 
-        # Use a fixed preheat target; this is intentionally not user-configurable.
-        temperature = 50.0
-   
-        # Remind the user to switch on the light bar before preheating.
-        self._plugin_manager.send_plugin_message(
-            "tapoautoshutdown",
-            {"type": "light_bar_reminder"},
-        )
+        # Read the configured target temperature
+        try:
+            temperature = float(
+                self._settings.get(["bed_preheat_temperature"])
+            )
+            if not 0 <= temperature <= 100:
+                raise ValueError("Temperature must be between 0 and 100")
+        except (TypeError, ValueError):
+            temperature = 60.0
 
         # Ask the printer firmware to heat the bed
         try:
             self._bed_preheat_complete_notified = False
             self._bed_preheat_handled = True
             self._printer.set_temperature("bed", temperature)
-
             self._send_ntfy_notification(
-                f" 🔥 Ender 3 Pro - Bed preheating set to {temperature:.0f}°C"
+                f"ðŸ”¥ Ender 3 Pro - Bed preheating set to {temperature:.0f}Â°C"
             )
             self._logger.info(
                 "Automatic bed preheat requested: %.1f C",
@@ -343,19 +378,16 @@ class TapoAutoShutdownPlugin(
                 if actual >= target_temperature:
                     if not self._bed_preheat_complete_notified:
                         self._bed_preheat_complete_notified = True
-
-                        # The fixed 50 C preheat target is the ready threshold.
+                        self._plugin_manager.send_plugin_message(
+                            "tapoautoshutdown",
+                            {
+                                "type": "bed_preheat_complete",
+                                "temperature": round(actual, 1),
+                            },
+                        )
                         if target_temperature >= 50.0 and actual >= 50.0:
-                            self._plugin_manager.send_plugin_message(
-                                "tapoautoshutdown",
-                                {
-                                    "type": "bed_preheat_complete",
-                                    "temperature": round(actual, 1),
-                                },
-                            )
-
                             self._send_ntfy_notification(
-                                f"✅ Ender 3 Pro - Bed preheated to {actual:.1f}°C. Ready to print!"
+                                f"âœ… Ender 3 Pro - Bed preheated to {actual:.1f}Â°C. Ready to print!"
                             )
                             self._logger.info(
                                 "Bed reached print-ready temperature: %.1f C",
@@ -363,9 +395,7 @@ class TapoAutoShutdownPlugin(
                             )
                         else:
                             self._logger.info(
-                                "Bed reached preheat preset %.1f C; "
-                                "Ready to print notification suppressed "
-                                "because the target is below 50 C",
+                                "Bed reached preheat preset %.1f C; ready-to-print notification suppressed because the target is below 50 C",
                                 actual,
                             )
                     return
@@ -387,7 +417,7 @@ class TapoAutoShutdownPlugin(
                 "temperature": target_temperature,
                 "message": (
                     "Preheating timed out. The bed did not reach "
-                    f"{target_temperature:.1f}°C within 30 minutes. "
+                    f"{target_temperature:.1f}Â°C within 30 minutes. "
                     "Check the printer before printing."
                 ),
             },
@@ -740,13 +770,14 @@ class TapoAutoShutdownPlugin(
                                     "type": "bed_cooling_shutdown",
                                     "temperature": round(actual, 1),
                                 },
-                            )                   
+                            )
+                            return
                         else:
                             self._logger.error(
                                 "Could not switch off Ender Tapo plug; monitor will retry"
                             )
                             time.sleep(10)
-                            continue 
+                            continue
 
                     if actual <= 40.0:
                         should_notify = False
@@ -765,8 +796,8 @@ class TapoAutoShutdownPlugin(
                                     "type": "bed_cooling_reminder",
                                     "temperature": round(actual, 1),
                                     "message": (
-                                        "Bed is at 40°C or below — try removing your print. "
-                                        "The printer will switch off automatically at 30°C."
+                                        "Bed is at 40Â°C or below â€” try removing your print. "
+                                        "The printer will switch off automatically at 30Â°C."
                                     ),
                                 },
                             )
@@ -775,36 +806,36 @@ class TapoAutoShutdownPlugin(
                                 actual,
                             )
                             self._send_ntfy_notification(
-                                f" ❄️ Ender 3 Pro bed reached 40°C (currently {actual:.1f}°C)."
+                                f"â„ï¸ Ender 3 Pro bed reached 40Â°C (currently {actual:.1f}Â°C)."
                             )
 
-                    if actual <= 32.0:
-                        should_notify_32 = False
-                        with self._bed_cooling_monitor_lock:
-                            if (
-                                generation == self._bed_cooling_monitor_generation
-                                and not self._bed_32_notified
-                            ):
-                                self._bed_32_notified = True
-                                should_notify_32 = True
+                if actual <= 32.0:
+                    should_notify_32 = False
+                    with self._bed_cooling_monitor_lock:
+                        if (
+                            generation == self._bed_cooling_monitor_generation
+                            and not self._bed_32_notified
+                        ):
+                            self._bed_32_notified = True
+                            should_notify_32 = True
 
-                        if should_notify_32:
-                            self._plugin_manager.send_plugin_message(
-                                "tapoautoshutdown",
-                                {
-                                    "type": "bed_cooling_shutdown_warning",
-                                    "temperature": round(actual, 1),
-                                    "message": (
-                                        "The bed is at 32°C. "
-                                        "The printer's Tapo plug will switch off "
-                                        "automatically when the bed reaches 30°C."
-                                    ),
-                                },
-                            )
-                            self._logger.info(
-                                "Sent one-time Tapo shutdown warning at %.1f C",
-                                actual,
-                            )    
+                    if should_notify_32:
+                        self._plugin_manager.send_plugin_message(
+                            "tapoautoshutdown",
+                            {
+                                "type": "bed_cooling_shutdown_warning",
+                                "temperature": round(actual, 1),
+                                "message": (
+                                    "The bed is at 32Â°C. "
+                                    "The printer's Tapo plug will switch off "
+                                    "automatically when the bed reaches 30Â°C."
+                                ),
+                            },
+                        )
+                        self._logger.info(
+                            "Sent one-time Tapo shutdown warning at %.1f C",
+                            actual,
+                        )    
 
             except Exception as e:
                 self._logger.warning(
@@ -832,7 +863,7 @@ class TapoAutoShutdownPlugin(
             plug = await client.p110(ip)
             await plug.off()
             self._send_ntfy_notification(
-                " 🔌Ender 3 Pro Tapo plug switched off after bed cooling."
+                "ðŸ”Œ Ender 3 Pro Tapo plug switched off after bed cooled to 30Â°C or below."
             )
             return True
         except Exception as e:
@@ -912,6 +943,7 @@ class TapoAutoShutdownPlugin(
             "password": "",
             "ip": "",
             "bed_preheat_enabled": False,
+            "bed_preheat_temperature": 60,
 
             # OctoPi Tapo P110
             "octopi_tapo_enabled": False,
