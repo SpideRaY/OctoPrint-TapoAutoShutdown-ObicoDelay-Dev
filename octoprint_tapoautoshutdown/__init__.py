@@ -1,6 +1,8 @@
 import asyncio
 import threading
 import time
+import urllib.error
+import urllib.request
 from importlib.metadata import version
 
 import octoprint.plugin
@@ -33,8 +35,26 @@ class TapoAutoShutdownPlugin(
         self._bed_cooling_monitor_lock = threading.Lock()
         self._bed_cooling_monitor_generation = 0      
         self._bed_40_notified = False
-        self._bed_32_notified = False  
-        
+        self._bed_32_notified = False
+
+    def _send_ntfy_notification(self, message):
+        """Send a push notification without disrupting printer control."""
+        topic = "ender-alerts-a7k9m2p4x8q6"
+        request = urllib.request.Request(
+            f"https://ntfy.sh/{topic}",
+            data=message.encode("utf-8"),
+            headers={"Title": "Notify Mate", "Priority": "default"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=5) as response:
+                if response.status < 200 or response.status >= 300:
+                    self._logger.warning(
+                        "ntfy notification returned HTTP status %s", response.status
+                    )
+        except Exception as e:
+            self._logger.warning("Could not send ntfy notification: %s", e)
+
     def on_after_startup(self):
         self._logger.info("Tapo Auto Shutdown started")
 
@@ -746,6 +766,9 @@ class TapoAutoShutdownPlugin(
                                 "Sent one-time bed-removal reminder at %.1f C",
                                 actual,
                             )
+                            self._send_ntfy_notification(
+                                f"Ender 3 Pro bed reached 40°C (currently {actual:.1f}°C)."
+                            )
 
                     if actual <= 32.0:
                         should_notify_32 = False
@@ -800,6 +823,9 @@ class TapoAutoShutdownPlugin(
             client = ApiClient(username, password)
             plug = await client.p110(ip)
             await plug.off()
+            self._send_ntfy_notification(
+                "Ender 3 Pro Tapo plug switched off after bed cooling."
+            )
             return True
         except Exception as e:
             self._logger.error("Failed to switch off Ender Tapo plug: %s", e)
