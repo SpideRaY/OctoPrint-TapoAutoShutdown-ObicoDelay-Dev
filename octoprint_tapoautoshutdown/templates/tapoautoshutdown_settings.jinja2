@@ -1,4 +1,18 @@
 <div class="control-group">
+    <label class="control-label">ntfy notification topic</label>
+    <div class="controls">
+        <input type="text"
+            class="input-xlarge"
+            autocomplete="off"
+            data-bind="value: settings.plugins.tapoautoshutdown.ntfy_topic">
+        <p class="help-block">
+            Topic used for phone push notifications at ntfy.sh. Use a hard-to-guess
+            topic name and keep it private. Leave empty to disable ntfy notifications.
+        </p>
+    </div>
+</div>
+
+<div class="control-group">
     <label class="control-label">OctoPi Tapo P110 IP address</label>
     <div class="controls">
         <input type="text"
@@ -109,3 +123,4 @@
         </p>
     </div>
 </div>
+
