@@ -42,7 +42,23 @@ class TapoAutoShutdownPlugin(
 
     def _send_ntfy_notification(self, message):
         """Send a push notification without disrupting printer control."""
-        topic = "ender-alerts-a7k9m2p4x8q6"
+        # Read the ntfy topic from OctoPrint settings so it can be changed
+        # in Settings without editing the Python source.
+        topic = (self._settings.get(["ntfy_topic"]) or "").strip()
+        if not topic:
+            self._logger.warning(
+                "ntfy notification skipped because no topic is configured"
+            )
+            return
+
+        # Treat the topic as a single path component; don't allow a pasted URL
+        # or slash to change the destination.
+        if "/" in topic or any(ch.isspace() for ch in topic):
+            self._logger.warning(
+                "ntfy notification skipped because the configured topic is invalid"
+            )
+            return
+
         request = urllib.request.Request(
             f"https://ntfy.sh/{topic}",
             data=message.encode("utf-8"),
@@ -974,6 +990,10 @@ class TapoAutoShutdownPlugin(
             # OctoPi shutdown
             "octopi_shutdown_enabled": False,
             "octopi_shutdown_delay": 20,
+
+            # ntfy push notifications
+            # Preserve the currently configured topic when upgrading.
+            "ntfy_topic": "ender-alerts-a7k9m2p4x8q6",
 
             # Obico
             "obico_monitor_delay": 30,
