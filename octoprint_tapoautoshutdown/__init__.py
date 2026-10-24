@@ -46,7 +46,7 @@ class TapoAutoShutdownPlugin(
         request = urllib.request.Request(
             f"https://ntfy.sh/{topic}",
             data=message.encode("utf-8"),
-            headers={"Title": "Notify Mate", "Priority": "default"},
+            headers={"Title": "Tapo Auto Shutdown", "Priority": "default"},
             method="POST",
         )
         try:
