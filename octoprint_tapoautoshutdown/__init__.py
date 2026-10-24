@@ -277,6 +277,10 @@ class TapoAutoShutdownPlugin(
             self._bed_preheat_complete_notified = False
             self._bed_preheat_handled = True
             self._printer.set_temperature("bed", temperature)
+
+            self._send_ntfy_notification(
+                f"Ender 3 Pro - Bed preheating set to {temperature:.0f}°C"
+            )
             self._logger.info(
                 "Automatic bed preheat requested: %.1f C",
                 temperature,
