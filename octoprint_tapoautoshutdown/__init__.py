@@ -215,6 +215,13 @@ class TapoAutoShutdownPlugin(
             self._timelapse_failed = False
             self._ender_plug_off = False
             self._octopi_shutdown_started = False
+
+            threading.Thread(
+                target=self._clear_ntfy_notification_history,
+                name="TapoAutoShutdown-ntfy-cleanup",
+                daemon=True,
+            ).start()
+            
             with self._bed_cooling_monitor_lock:
                 self._bed_cooling_monitor_generation += 1
                 self._bed_40_notified = False
