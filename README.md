@@ -1,4 +1,4 @@
-# **OctoPrint-TapoAutoShutdown v0.3.2**
+# **OctoPrint-TapoAutoShutdown v0.3.2.1**
 
 ## Version differences
 
@@ -41,6 +41,11 @@ Retains the existing printer shutdown, optional OctoPi shutdown, and Obico AI mo
 * Added warning box to show that the bed has reached the desired preset temperature.
 * Added warning boxes to tell the user to try to remove a print at 40°C+ a final reminder at 32°C
 * Added warning box to show that the printer has turned off at 30°C
+
+* v0.3.2 — Adding ntfy alerts to push when the bed has reached 40°C+ a final reminder at 32°C**
+* Requires the FREE app ntfy and a new subscribed topic unique to the user
+* It will notify when it's worth trying to remove the finished print
+* It will notify when the printer has turned OFF when the bed reaches 30°C
 
 **Upgrading to the latest version**
 
