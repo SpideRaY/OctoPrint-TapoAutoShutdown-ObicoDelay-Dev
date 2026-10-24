@@ -969,17 +969,49 @@ class TapoAutoShutdownPlugin(
             }
         ]
         
+    def on_settings_initialized(self):
+        """Populate final-octet fields from existing full IP settings on upgrade."""
+        for ip_key, octet_key in (
+            ("ip", "ip_last_octet"),
+            ("octopi_tapo_ip", "octopi_tapo_ip_last_octet"),
+        ):
+            current_octet = (self._settings.get([octet_key]) or "").strip()
+            if current_octet:
+                continue
+            full_ip = (self._settings.get([ip_key]) or "").strip()
+            prefix = "192.168.1."
+            if full_ip.startswith(prefix):
+                tail = full_ip[len(prefix):].strip()
+                if tail.isdigit() and 1 <= int(tail) <= 254:
+                    self._settings.set([octet_key], str(int(tail)))
+
+    def on_settings_save(self, data):
+        """Validate octets and keep legacy full-IP settings in sync."""
+        for ip_key, octet_key in (
+            ("ip", "ip_last_octet"),
+            ("octopi_tapo_ip", "octopi_tapo_ip_last_octet"),
+        ):
+            raw = str(data.get(octet_key, "") or "").strip()
+            if raw.isdigit() and 1 <= int(raw) <= 254:
+                data[octet_key] = str(int(raw))
+                data[ip_key] = "192.168.1." + str(int(raw))
+            else:
+                data[octet_key] = ""
+                data[ip_key] = ""
+
     def get_settings_defaults(self):
         return {
             # Printer Tapo P110
             "username": "",
             "password": "",
             "ip": "",
+            "ip_last_octet": "",
             "bed_preheat_enabled": False,
 
             # OctoPi Tapo P110
             "octopi_tapo_enabled": False,
             "octopi_tapo_ip": "",
+            "octopi_tapo_ip_last_octet": "",
 
             # OctoPi shutdown
             "octopi_shutdown_enabled": False,
